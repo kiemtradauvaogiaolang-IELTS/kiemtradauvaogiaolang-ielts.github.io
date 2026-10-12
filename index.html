@@ -93,6 +93,7 @@ img.fig.zoom{cursor:zoom-out;max-width:none;width:min(1400px,96vw)}
 .ql .qn,.mc .qn{font-weight:700;color:var(--accent-ink);min-width:26px}
 .ql .qt{flex:1 1 260px;min-width:0}
 .ql .qa{flex:0 0 auto}
+.ql.rad .qa{flex:1 0 100%;padding-left:38px}
 .radios{display:flex;flex-wrap:wrap;gap:6px}
 .radios label{border:1px solid #CFC8C3;border-radius:8px;padding:6px 10px;display:inline-flex;gap:6px;align-items:center;font-size:13.5px;cursor:pointer;background:#fff;min-height:36px}
 .radios label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
@@ -245,9 +246,9 @@ function blocks(bs){
       case 'qh': return `<h3 class="qh">${esc(b.text)}</h3>`;
       case 'li': return `<div class="li"><b>${b.k ? esc(b.k) : '•'}</b><span>${segs(b.c)}</span></div>`;
       case 'box': return `<div class="box">${blocks(b.b)}</div>`;
-      case 'table': return `<div class="tw"><table>${b.rows.map(r => `<tr>${r.map(c => `<td colspan="${c.span || 1}">${blocks(c.b)}</td>`).join('')}</tr>`).join('')}</table></div>`;
+      case 'table': return `<div class="tw"><table>${b.rows.map(r => `<tr>${r.map(c => `<td colspan="${c.span || 1}"${c.rs > 1 ? ` rowspan="${c.rs}"` : ''}>${blocks(c.b)}</td>`).join('')}</tr>`).join('')}</table></div>`;
       case 'img': return b.src ? `<img class="fig" src="${esc(b.src)}" alt="Hình trong đề" loading="lazy" data-zoom>` : `<div class="alert">Chưa tải được hình trong đề. Tải lại trang để thử lại.</div>`;
-      case 'q': return `<div class="ql"><span class="qn">${b.q}</span><div class="qt">${segs(b.c)}</div><div class="qa">${control(b.q)}</div></div>`;
+      case 'q': { const c = control(b.q); return `<div class="ql${c.startsWith('<div class="radios"') ? ' rad' : ''}"><span class="qn">${b.q}</span><div class="qt">${segs(b.c)}</div><div class="qa">${c}</div></div>`; }
       case 'mc': {
         const q = (S.v.content.questions || {})[b.q] || {}, val = String(S.answers[b.q] || '');
         return `<fieldset class="mc"><legend><span class="qn">${b.q}</span><span>${segs(b.c)}</span></legend>${(b.opts || []).map(o => `<label class="opt"><input type="radio" name="q${b.q}" data-q="${b.q}" value="${esc(o.k)}" ${val === o.k ? 'checked' : ''}><b>${esc(o.k)}</b><span>${segs(o.c)}</span></label>`).join('')}</fieldset>`;
