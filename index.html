@@ -207,21 +207,54 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const SK = { L:'Listening', R:'Reading', W:'Writing' };
 const DEVICE = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'phone' : 'desktop';
+// mã ngẫu nhiên của trình duyệt này (nhớ trong máy): mỗi lúc chỉ một máy được làm bài, máy khác mở cùng link sẽ bị chặn
+const DEVKEY = (() => {
+  let k = null;
+  try { k = localStorage.getItem('gl_pl_may'); } catch (e) {}
+  if (!/^[0-9a-f]{32}$/.test(k || '')){
+    const a = new Uint8Array(16); crypto.getRandomValues(a); k = Array.from(a, x => x.toString(16).padStart(2, '0')).join('');
+    try { localStorage.setItem('gl_pl_may', k); } catch (e) {}
+  }
+  return k;
+})();
 const params = new URLSearchParams(location.search);
 let TOKEN = (params.get('ma') || '').trim();
 
 const S = { v:null, offset:0, answers:{}, writing:{}, typing:[], leaves:[], dirty:false, saveState:'ok', saving:false,
   audioUrl:null, audioPct:0, audioErr:'', phase:'', modal:null, submitting:false, away:null, intro:false, welcome:false, lastText:{},
-  part:0, rTab:'p', scr:{}, partQs:[], qPart:{}, hl:{}, hlPend:null, key:null, lastSec:null };
+  part:0, rTab:'p', scr:{}, partQs:[], qPart:{}, hl:{}, hlPend:null, key:null, lastSec:null, blocked:false, lastCall:0 };
 
 /* ---------------------------------------------------------------- máy chủ */
 async function api(body){
   let r;
+  if (body.token){ body.key = DEVKEY; body.device = body.device || DEVICE; }
+  S.lastCall = Date.now();
   try { r = await fetch(FN, { method:'POST', headers:{ 'Content-Type':'application/json', 'apikey': C.key || '' }, body: JSON.stringify(body) }); }
   catch (e){ const err = new Error('Mất kết nối mạng. Kiểm tra kết nối mạng rồi thử lại.'); err.net = true; throw err; }
   let j = null; try { j = await r.json(); } catch (e) {}
-  if (!r.ok){ const err = new Error((j && j.message) || 'Máy chủ đang bận. Thử lại sau ít giây.'); err.status = r.status; throw err; }
+  if (!r.ok){
+    const err = new Error((j && j.message) || 'Máy chủ đang bận. Thử lại sau ít giây.'); err.status = r.status;
+    if (j && j.busy){ err.busy = true; blocked(); }
+    throw err;
+  }
   return j;
+}
+// máy khác đang làm bài bằng link này: dừng mọi thứ trên máy này (không lưu, không nộp), chỉ còn nút "Thử lại"
+function blocked(){
+  S.blocked = true; S.modal = null; S.phase = S.phase === 'play' ? '' : S.phase;
+  clearTimeout(saveTimer);
+  try { aud.pause(); } catch (e) {}
+  render();
+}
+function showBlocked(){
+  $('#bar').hidden = true; $('#nav').hidden = true; S.key = null; hideHl();
+  document.body.classList.remove('testing', 'split-mode');
+  $('#modal').innerHTML = '';
+  $('#main').innerHTML = `<div class="narrow stack"><div class="card stack"><h1 style="font-size:21px">Bài kiểm tra đang được làm trên một máy khác</h1>
+    <p style="margin:0">Mỗi bài kiểm tra chỉ được làm trên một máy tại một thời điểm. Link này đang được mở trên một máy khác, nên máy này tạm thời chưa vào được.</p>
+    <p style="margin:0">Nếu bạn vừa đổi máy (ví dụ điện thoại hết pin, lỡ tắt trình duyệt, hoặc mở link bằng một ứng dụng khác), hãy tắt trang làm bài ở máy hoặc ứng dụng kia, đợi khoảng 2 phút rồi bấm "Thử lại". Bài đã làm vẫn được giữ, nhưng đồng hồ vẫn chạy trong lúc chờ.</p>
+    <p style="margin:0">Nếu bạn không mở bài trên máy nào khác, hãy nhắn trung tâm qua Zalo ngay.</p>
+    <div><button class="btn pri" type="button" data-a="busy-retry">Thử lại</button></div></div></div>`;
 }
 const now = () => Date.now() + S.offset;
 const sec = () => S.v && S.v.sec;
@@ -336,6 +369,7 @@ function timerText(){
   return '⏱ ' + fmt((v.deadline - now()) / 1000);
 }
 function render(){
+  if (S.blocked){ showBlocked(); return; }
   renderWho(); renderBar();
   const v = S.v, m = $('#main');
   if (!v){ return; }
@@ -662,7 +696,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 function markDirty(){ S.dirty = true; clearTimeout(saveTimer); saveTimer = setTimeout(() => save(false), 1200); }
 const typingOut = list => list.map(e => ({ k: e.k, t: e.t, e: e.e, i: e.i, d: e.d, s: e.s }));
 async function save(force){
-  const v = S.v; if (!v || !v.started || v.sec === 'done') return;
+  const v = S.v; if (!v || !v.started || v.sec === 'done' || S.blocked) return;
   if (S.saving){ S.dirty = true; return; }
   const body = { action:'save', token: TOKEN, section: v.sec };
   if (v.sec !== 'W') body.answers = S.answers; else body.writing = S.writing;
@@ -688,9 +722,9 @@ async function save(force){
 function setSave(st){ S.saveState = st; const el = $('#saved'); if (el){ el.textContent = saveLabel(); el.className = 'saved' + (st === 'ok' ? '' : ' warn'); } }
 setInterval(() => { if (S.v && S.v.started && S.v.sec !== 'done') save(S.v.sec === 'L' && S.phase === 'play'); }, 8000);
 window.addEventListener('pagehide', () => {
-  const v = S.v; if (!v || !v.started || v.sec === 'done') return;
+  const v = S.v; if (!v || !v.started || v.sec === 'done' || S.blocked) return;
   back();
-  const body = { action:'save', token: TOKEN, section: v.sec, answers: v.sec !== 'W' ? S.answers : undefined, writing: v.sec === 'W' ? S.writing : undefined,
+  const body = { action:'save', token: TOKEN, key: DEVKEY, device: DEVICE, section: v.sec, answers: v.sec !== 'W' ? S.answers : undefined, writing: v.sec === 'W' ? S.writing : undefined,
     typing: typingOut(S.typing.splice(0)), leaves: S.leaves.splice(0), pos: v.sec === 'L' && S.phase === 'play' ? aud.currentTime : undefined };
   try { fetch(FN, { method:'POST', keepalive:true, headers:{ 'Content-Type':'application/json', 'apikey': C.key || '' }, body: JSON.stringify(body) }); } catch (e) {}
 });
@@ -704,7 +738,13 @@ function back(){
   if (S.away != null){ const d = Math.round((now() - S.away) / 1000); if (d >= 1){ S.leaves.push({ t: S.away, d }); markDirty(); } S.away = null; }
   if (S.lostAudio && !document.hidden){ S.lostAudio = false; if (S.phase === 'play' && aud.paused){ S.phase = ''; reopen().catch(() => setTimeout(() => location.reload(), 3000)); } }
 }
-document.addEventListener('visibilitychange', () => { if (document.hidden) goneAway(); else back(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) goneAway(); else { back(); beat(); } });
+function beat(){
+  // máy chủ cũ (chưa có "beat") trả lỗi: bỏ qua. Máy chủ báo máy khác đang làm: api() tự chuyển sang màn chặn
+  if (!S.v || S.v.sec === 'done' || S.blocked || document.hidden || Date.now() - S.lastCall < 15000) return;
+  api({ action:'beat', token: TOKEN }).catch(() => {});
+}
+setInterval(beat, 20000);
 window.addEventListener('blur', goneAway); window.addEventListener('focus', back);
 
 /* ---------------------------------------------------------------- Writing: chặn dán, ghi quá trình gõ */
@@ -747,6 +787,7 @@ document.addEventListener('focusin', e => { const t = e.target; if (t.dataset &&
 
 /* ---------------------------------------------------------------- nút bấm */
 const ACT = {
+  'busy-retry': () => { S.blocked = false; S.v = null; $('#main').innerHTML = '<div class="narrow"><div class="card">Đang mở lại bài kiểm tra…</div></div>'; start(); },
   enter: () => { document.querySelectorAll('video').forEach(x => { try { x.pause(); } catch (e) {} }); S.welcome = false; S.modal = Object.assign({ type:'intro' }, introFor('L')); render(); loadAudio(); },
   'reload-audio': () => { S.audioUrl = null; loadAudio(); },
   begin: async () => {
@@ -777,7 +818,7 @@ const ACT = {
   confirm: () => submitNow(),
 };
 async function submitNow(){
-  if (S.submitting) return; S.submitting = true; S.busy = true; render();
+  if (S.submitting || S.blocked) return; S.submitting = true; S.busy = true; render();
   clearTimeout(saveTimer);
   for (let i = 0; i < 100 && S.saving; i++) await sleep(100);      // chờ lần tự lưu đang chạy xong
   const v = S.v, body = { action:'submit', token: TOKEN, section: v.sec };
@@ -813,7 +854,7 @@ document.addEventListener('submit', async e => {
 
 /* ---------------------------------------------------------------- vòng đồng hồ */
 setInterval(() => {
-  const v = S.v; if (!v || v.sec === 'done' || !v.started) return;
+  const v = S.v; if (!v || v.sec === 'done' || !v.started || S.blocked) return;
   const t = $('#timer'); if (t){ t.textContent = timerText(); const left = (v.deadline - now()) / 1000; t.className = 'timer' + ((S.phase !== 'play' && left <= 120) ? ' low' : ''); }
   if (v.sec === 'L'){
     if (S.phase === 'play' && aud.paused && expectedPos() >= v.durations.audio - 0.5){ S.phase = 'review'; render(); return; }
@@ -885,7 +926,7 @@ async function start(){
   try {
     const v = await api({ action:'open', token: TOKEN, device: DEVICE });
     setView(v, false); afterOpen(v); render();
-  } catch (e){ showError(e.message, e.status === 404 && !/^[0-9a-f]{64}$/.test(TOKEN)); if (e.net) setTimeout(start, 4000); }
+  } catch (e){ if (e.busy) return; showError(e.message, e.status === 404 && !/^[0-9a-f]{64}$/.test(TOKEN)); if (e.net) setTimeout(start, 4000); }
 }
 if (!TOKEN){ $('#main').innerHTML = `<div class="narrow stack"><div class="card stack"><h1 style="font-size:21px">Vào bài kiểm tra đầu vào</h1><p style="margin:0" class="muted">Bấm vào link trung tâm gửi qua Zalo. Nếu không mở được link, nhắn trung tâm qua Zalo để nhận mã 8 ký tự rồi nhập vào ô dưới đây.</p>${codeForm()}</div></div>`; }
 else if (/^[A-Za-z0-9]{8}$/.test(TOKEN)){ api({ action:'code', code: TOKEN }).then(r => { TOKEN = r.token; history.replaceState(null, '', '?ma=' + encodeURIComponent(TOKEN)); start(); }, e => showError(e.message, true)); }
