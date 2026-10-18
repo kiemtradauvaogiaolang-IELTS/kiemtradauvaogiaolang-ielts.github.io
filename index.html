@@ -49,6 +49,7 @@ header.top .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;ju
 .timer:empty,.saved:empty{display:none}
 main.wrap{padding-top:24px;padding-bottom:56px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.guide video{display:block;width:100%;aspect-ratio:16/9;margin-top:10px;border-radius:10px;background:#f3ece8;border:1px solid var(--line)}
 .stack{display:flex;flex-direction:column;gap:16px}
 .narrow{max-width:740px;margin:0 auto}
 .muted{color:var(--muted)} .small{font-size:13px}
@@ -400,6 +401,9 @@ function viewWelcome(){
   return `<div class="narrow stack">
     <div><h1 style="font-size:27px;margin-bottom:6px">Chào mừng bạn đến với bài kiểm tra đầu vào</h1>
     <p class="muted" style="margin:0">Bài kiểm tra gồm 3 phần, làm lần lượt theo thứ tự dưới đây. Mỗi phần có phần giới thiệu và nút "Bắt đầu" riêng.</p></div>
+    <div class="card guide"><b>Lần đầu làm bài? Xem video hướng dẫn (3 phút)</b>
+      <div class="small muted">Video dùng đề mẫu để minh hoạ, không phải đề bạn sắp làm. Xem video không tính vào giờ làm bài.</div>
+      <video controls preload="none" playsinline poster="huong-dan.jpg" aria-label="Video hướng dẫn làm bài"><source src="huong-dan.mp4" type="video/mp4"><source src="huong-dan.webm" type="video/webm">Trình duyệt không phát được video.</video></div>
     <div class="grid3">
       <div class="card"><div class="kicker">Phần 1</div><b style="font-size:17px">Listening</b><div class="small muted">${S.v.counts.L} câu · hết file nghe + 3 phút kiểm tra</div></div>
       <div class="card"><div class="kicker">Phần 2</div><b style="font-size:17px">Reading</b><div class="small muted">${S.v.counts.R} câu · ${Math.round(d.R / 60)} phút</div></div>
@@ -743,7 +747,7 @@ document.addEventListener('focusin', e => { const t = e.target; if (t.dataset &&
 
 /* ---------------------------------------------------------------- nút bấm */
 const ACT = {
-  enter: () => { S.welcome = false; S.modal = Object.assign({ type:'intro' }, introFor('L')); render(); loadAudio(); },
+  enter: () => { document.querySelectorAll('video').forEach(x => { try { x.pause(); } catch (e) {} }); S.welcome = false; S.modal = Object.assign({ type:'intro' }, introFor('L')); render(); loadAudio(); },
   'reload-audio': () => { S.audioUrl = null; loadAudio(); },
   begin: async () => {
     if (S.busy) return; S.busy = true; refreshModal();
