@@ -604,11 +604,17 @@ function viewModal(){
   return '';
 }
 function viewResult(){
-  const r = (S.v && S.v.result) || {};
-  const card = (k, x) => `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between"><b style="font-size:16px">${SK[k]}</b><span class="muted small">${x.correct == null ? '' : `${x.correct}/${x.total} câu đúng`}</span></div><div class="band">${x.band == null ? '–' : Number(x.band).toFixed(1)}</div>${x.comment ? `<p class="small" style="margin:0;color:var(--text2)">${esc(x.comment)}</p>` : ''}</div>`;
-  return `<div class="narrow stack"><div class="row" style="gap:14px;flex-wrap:nowrap"><span class="pill p-ok" style="width:46px;height:46px;justify-content:center;font-size:22px;padding:0">✓</span><div><h1 style="font-size:24px">Bạn đã nộp bài thành công</h1><div class="muted">Cảm ơn bạn đã hoàn thành bài kiểm tra đầu vào.</div></div></div>
+  const r = (S.v && S.v.result) || {}, skip = (S.v && S.v.abandoned) || [];
+  const card = (k, x) => skip.includes(k)
+    ? `<div class="card" style="display:flex;flex-direction:column;gap:8px"><b style="font-size:16px">${SK[k]}</b><p class="small" style="margin:0;color:var(--text2)">Bạn chưa làm phần này.</p></div>`
+    : `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between"><b style="font-size:16px">${SK[k]}</b><span class="muted small">${x.correct == null ? '' : `${x.correct}/${x.total} câu đúng`}</span></div><div class="band">${x.band == null ? '–' : Number(x.band).toFixed(1)}</div>${x.comment ? `<p class="small" style="margin:0;color:var(--text2)">${esc(x.comment)}</p>` : ''}</div>`;
+  // bài bỏ dở: máy chủ tự nộp khi quá 24 giờ không làm tiếp (Quản lý chốt 19/10)
+  const head = skip.length
+    ? `<div class="card stack"><h1 style="font-size:21px">Bài kiểm tra đã được tự nộp</h1><p style="margin:0">Bài được tự nộp vì đã quá 24 giờ bạn không làm tiếp. Phần chưa làm (${skip.map(k => SK[k]).join(', ')}) được tính là bỏ trống.</p><p style="margin:0">Nếu cần làm lại, hãy nhắn trung tâm qua Zalo.</p></div>`
+    : `<div class="row" style="gap:14px;flex-wrap:nowrap"><span class="pill p-ok" style="width:46px;height:46px;justify-content:center;font-size:22px;padding:0">✓</span><div><h1 style="font-size:24px">Bạn đã nộp bài thành công</h1><div class="muted">Cảm ơn bạn đã hoàn thành bài kiểm tra đầu vào.</div></div></div>`;
+  return `<div class="narrow stack">${head}
     <div class="res">${card('L', r.L || {})}${card('R', r.R || {})}</div>
-    <div class="card"><b>Writing</b><p class="small" style="margin:4px 0 0;color:var(--text2)">Bài viết của bạn sẽ được giáo viên chấm. Trung tâm sẽ liên hệ với bạn để báo kết quả đầy đủ và tư vấn xếp lớp.</p></div></div>`;
+    <div class="card"><b>Writing</b><p class="small" style="margin:4px 0 0;color:var(--text2)">${skip.includes('W') ? 'Bạn chưa làm phần này.' : 'Bài viết của bạn sẽ được giáo viên chấm. Trung tâm sẽ liên hệ với bạn để báo kết quả đầy đủ và tư vấn xếp lớp.'}</p></div></div>`;
 }
 function showError(msg, withCode){
   $('#bar').hidden = true; $('#nav').hidden = true; S.key = null; hideHl();
