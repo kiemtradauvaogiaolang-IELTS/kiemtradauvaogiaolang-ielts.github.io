@@ -9,13 +9,14 @@
 <meta property="og:description" content="Trung tâm Ngoại ngữ Giáo Làng – Giáo dục là tận hiến.">
 <meta property="og:image" content="https://kiemtradauvaogiaolang-ielts.github.io/logo.png">
 <meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer"><!-- link riêng có mã bài làm: không gửi địa chỉ trang sang trang khác (rà soát bảo mật 29/10) -->
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#F7F5F3;--surface:#FFFFFF;--line:#E5E0DC;--line2:#F0ECE9;--text:#1C1A19;--text2:#3B3735;--muted:#6B6460;--faint:#9A928D;
-  --accent:#D10000;--accent-ink:#B00000;--accent-soft:#FCEBEA;--ok:#1D6B3A;--ok-soft:#E6F2EA;--warn:#8A4B00;--warn-soft:#FFF1DD;
+  --accent:#CC1D0C;--accent-ink:#A8170A;--accent-soft:#FBEDEC;--ok:#1D6B3A;--ok-soft:#E6F2EA;--warn:#8A4B00;--warn-soft:#FFF1DD;
   --bad:#A80000;--info:#1F4E9A;--info-soft:#E8EFFA;--green:#1E8449;--font:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -91,7 +92,7 @@ img.fig.zoom{cursor:zoom-out;max-width:none;width:min(1400px,96vw)}
 .gap input{width:10em;max-width:60vw;border:1px solid #CFC8C3;border-radius:7px;padding:4px 8px;font-size:16px;background:#fff}
 .gap select,.qa select{border:1px solid #CFC8C3;border-radius:7px;padding:5px 8px;font-size:16px;background:#fff;min-width:76px;min-height:36px}
 .ql{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line2)}
-.ql .qn,.mc .qn{font-weight:700;color:var(--accent-ink);min-width:26px}
+.ql .qn,.mc .qn{font-weight:700;color:var(--accent-ink);min-width:26px;white-space:nowrap;flex:0 0 auto}
 .ql .qt{flex:1 1 260px;min-width:0}
 .ql .qa{flex:0 0 auto}
 .ql.rad .qa{flex:1 0 100%;padding-left:38px}
@@ -104,6 +105,8 @@ fieldset.mc legend{display:flex;gap:8px;font-weight:600;padding:0;margin-bottom:
 .opt:has(input:checked){background:var(--accent-soft)}
 .opt input{margin-top:5px}
 .opt b{min-width:16px}
+.pick{margin:-2px 0 4px;padding-left:2px}
+.pick.warn{color:var(--warn);font-weight:600}
 /* chia hai khung: Reading (bài đọc | câu hỏi), Writing (đề bài | ô viết bài) */
 .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
 .pane>*{flex-shrink:0}
@@ -177,6 +180,7 @@ textarea.essay{width:100%;min-height:320px;border:1px solid #CFC8C3;border-radiu
 /* popup */
 .scrim{position:fixed;inset:0;background:rgba(28,26,25,.45);z-index:20;display:flex;align-items:center;justify-content:center;padding:16px}
 .blur{filter:blur(4px);pointer-events:none;user-select:none}
+.hold{visibility:hidden}              /* chờ tắt tiện ích sửa ngữ pháp: không hiện đề Writing */
 .modal{background:var(--surface);border-radius:16px;box-shadow:0 18px 50px rgba(40,20,15,.22);padding:24px;width:100%;max-width:520px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 32px);overflow:auto}
 .modal h2{font-size:22px}
 .res{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
@@ -197,7 +201,7 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:0 16px 28px}
 <div id="modal"></div>
 <button type="button" id="hlbtn" data-a="hl" hidden>Tô màu</button>
 <audio id="aud" preload="auto"></audio>
-<footer>Thông tin và bài làm chỉ dùng để xếp lớp và được xoá sau 60 ngày.</footer>
+<footer>Thông tin và bài làm của bạn chỉ dùng để xếp lớp, sau 60 ngày sẽ được xoá.</footer>
 <script src="config.js"></script>
 <script>
 (function(){
@@ -206,6 +210,33 @@ const FN = C.fn || (String(C.url || '').replace(/\/$/, '') + '/functions/v1/plac
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const SK = { L:'Listening', R:'Reading', W:'Writing' };
+// tắt Grammarly, LanguageTool, gợi ý chính tả của trình duyệt trong ô làm bài
+const NOASSIST = 'data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-ms-editor="false"';
+// tiện ích sửa ngữ pháp (Quản lý chốt 29/10): auto = nghe lệnh tắt của trang (chỉ ghi lại cho giáo viên); còn lại phải tắt mới làm
+// Writing – trang ẩn đề, máy chủ dừng đồng hồ Writing trong lúc chờ (tối đa 30 phút)
+const ASSIST = [
+  { n:'Grammarly', auto:true, tag:/^grammarly/, attr:/^data-gr-ext-installed$|^data-new-gr-c-s-check-loaded$|^data-grammarly/ },
+  { n:'LanguageTool', auto:true, tag:/^lt-/, attr:/^data-lt-installed$|^data-lt-tmp-id$/ },
+  { n:'QuillBot', any:/quillbot/ }, { n:'ProWritingAid', tag:/^pwa-/, any:/prowritingaid/ }, { n:'Ginger', any:/ginger/ },
+  { n:'Wordtune', any:/wordtune/ }, { n:'Linguix', any:/linguix/ }, { n:'Trinka', any:/trinka/ }, { n:'Outwrite', any:/outwrite/ },
+  { n:'Writefull', any:/writefull/ }, { n:'Sapling', any:/sapling/ }, { n:'Scribens', any:/scribens/ }];
+const OWN_ATTR = new Set(['data-gramm', 'data-gramm_editor', 'data-enable-grammarly', 'data-lt-active', 'data-ms-editor']);
+function assistScan(){
+  const found = new Set();
+  const els = document.getElementsByTagName('*');
+  for (let i = 0; i < els.length && i < 20000; i++){
+    const el = els[i], tag = el.localName || '';
+    const idc = ((el.id || '') + ' ' + (typeof el.className === 'string' ? el.className : '')).toLowerCase();
+    const names = el.attributes ? Array.from(el.attributes, a => a.name.toLowerCase()).filter(n => !OWN_ATTR.has(n)) : [];
+    for (const t of ASSIST){
+      if (found.has(t.n)) continue;
+      if ((t.tag && t.tag.test(tag)) || (t.attr && names.some(n => t.attr.test(n)))
+          || (t.any && (t.any.test(tag) || t.any.test(idc) || names.some(n => t.any.test(n))))) found.add(t.n);
+    }
+  }
+  const all = [...found];
+  return { block: all.filter(n => !ASSIST.find(t => t.n === n).auto), seen: all.filter(n => ASSIST.find(t => t.n === n).auto) };
+}
 const DEVICE = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'phone' : 'desktop';
 // mã ngẫu nhiên của trình duyệt này (nhớ trong máy): mỗi lúc chỉ một máy được làm bài, máy khác mở cùng link sẽ bị chặn
 const DEVKEY = (() => {
@@ -222,7 +253,8 @@ let TOKEN = (params.get('ma') || '').trim();
 
 const S = { v:null, offset:0, answers:{}, writing:{}, typing:[], leaves:[], dirty:false, saveState:'ok', saving:false,
   audioUrl:null, audioPct:0, audioErr:'', phase:'', modal:null, submitting:false, away:null, intro:false, welcome:false, lastText:{},
-  part:0, rTab:'p', scr:{}, partQs:[], qPart:{}, hl:{}, hlPend:null, key:null, lastSec:null, blocked:false, lastCall:0 };
+  part:0, rTab:'p', scr:{}, partQs:[], qPart:{}, hl:{}, hlPend:null, key:null, lastSec:null, blocked:false, lastCall:0,
+  ext:{ block:[], seen:[], sent:'', on:false, noPause:false } };
 
 /* ---------------------------------------------------------------- máy chủ */
 async function api(body){
@@ -230,10 +262,10 @@ async function api(body){
   if (body.token){ body.key = DEVKEY; body.device = body.device || DEVICE; }
   S.lastCall = Date.now();
   try { r = await fetch(FN, { method:'POST', headers:{ 'Content-Type':'application/json', 'apikey': C.key || '' }, body: JSON.stringify(body) }); }
-  catch (e){ const err = new Error('Mất kết nối mạng. Kiểm tra kết nối mạng rồi thử lại.'); err.net = true; throw err; }
+  catch (e){ const err = new Error('Mất kết nối mạng. Bạn kiểm tra lại Wi-Fi hoặc 4G rồi thử lại.'); err.net = true; throw err; }
   let j = null; try { j = await r.json(); } catch (e) {}
   if (!r.ok){
-    const err = new Error((j && j.message) || 'Máy chủ đang bận. Thử lại sau ít giây.'); err.status = r.status;
+    const err = new Error((j && j.message) || 'Máy chủ đang hơi bận. Bạn thử lại sau vài giây nhé.'); err.status = r.status;
     if (j && j.busy){ err.busy = true; blocked(); }
     throw err;
   }
@@ -251,9 +283,9 @@ function showBlocked(){
   document.body.classList.remove('testing', 'split-mode');
   $('#modal').innerHTML = '';
   $('#main').innerHTML = `<div class="narrow stack"><div class="card stack"><h1 style="font-size:21px">Bài kiểm tra đang được làm trên một máy khác</h1>
-    <p style="margin:0">Mỗi bài kiểm tra chỉ được làm trên một máy tại một thời điểm. Link này đang được mở trên một máy khác, nên máy này tạm thời chưa vào được.</p>
-    <p style="margin:0">Nếu bạn vừa đổi máy (ví dụ điện thoại hết pin, lỡ tắt trình duyệt, hoặc mở link bằng một ứng dụng khác), hãy tắt trang làm bài ở máy hoặc ứng dụng kia, đợi khoảng 2 phút rồi bấm "Thử lại". Bài đã làm vẫn được giữ, nhưng đồng hồ vẫn chạy trong lúc chờ.</p>
-    <p style="margin:0">Nếu bạn không mở bài trên máy nào khác, hãy nhắn trung tâm qua Zalo ngay.</p>
+    <p style="margin:0">Mỗi lúc chỉ một máy được làm bài. Link này đang mở ở máy khác nên máy này tạm chưa vào được.</p>
+    <p style="margin:0">Nếu bạn vừa đổi máy (điện thoại hết pin, lỡ tắt trình duyệt, hay mở link bằng ứng dụng khác), hãy đóng trang làm bài ở máy hoặc ứng dụng kia, đợi khoảng 2 phút rồi bấm "Thử lại". Bài đã làm vẫn còn nguyên, chỉ có đồng hồ vẫn chạy trong lúc chờ.</p>
+    <p style="margin:0">Nếu bạn không mở bài ở đâu khác, nhắn ngay cho trung tâm qua Zalo để được hỗ trợ.</p>
     <div><button class="btn pri" type="button" data-a="busy-retry">Thử lại</button></div></div></div>`;
 }
 const now = () => Date.now() + S.offset;
@@ -270,7 +302,7 @@ function control(n){
   if (q.type === 'choice'){
     return `<select data-q="${n}" aria-label="Câu ${n}"><option value=""></option>${(q.choices || []).map(c => `<option ${val === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`;
   }
-  return `<input type="text" data-q="${n}" value="${esc(val)}" aria-label="Câu ${n}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="80">`;
+  return `<input type="text" data-q="${n}" value="${esc(val)}" aria-label="Câu ${n}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${NOASSIST} maxlength="80">`;
 }
 const segs = c => (c || []).map(s => typeof s === 'string' ? esc(s) : `<span class="gap"><span class="n">${s.q}</span>${control(s.q)}</span>`).join('');
 function blocks(bs){
@@ -281,9 +313,14 @@ function blocks(bs){
       case 'li': return `<div class="li"><b>${b.k ? esc(b.k) : '•'}</b><span>${segs(b.c)}</span></div>`;
       case 'box': return `<div class="box">${blocks(b.b)}</div>`;
       case 'table': return `<div class="tw"><table>${b.rows.map(r => `<tr>${r.map(c => `<td colspan="${c.span || 1}"${c.rs > 1 ? ` rowspan="${c.rs}"` : ''}>${blocks(c.b)}</td>`).join('')}</tr>`).join('')}</table></div>`;
-      case 'img': return b.src ? `<img class="fig" src="${esc(b.src)}" alt="Hình trong đề" loading="lazy" data-zoom>` : `<div class="alert">Chưa tải được hình trong đề. Tải lại trang để thử lại.</div>`;
+      case 'img': return b.src ? `<img class="fig" src="${esc(b.src)}" alt="Hình trong đề" loading="lazy" data-zoom>` : `<div class="alert">Hình trong đề chưa tải được. Bạn tải lại trang thử nhé.</div>`;
       case 'q': { const c = control(b.q); return `<div class="ql${c.startsWith('<div class="radios"') ? ' rad' : ''}"><span class="qn">${b.q}</span><div class="qt">${segs(b.c)}</div><div class="qa">${c}</div></div>`; }
       case 'mc': {
+        if (Array.isArray(b.qs) && b.qs.length > 1){
+          // "Choose TWO letters": một câu, chọn đúng 2 (3) chữ – mỗi chữ là một câu (21, 22), thứ tự nào cũng được
+          const got = b.qs.map(n => String(S.answers[n] || '')).filter(Boolean);
+          return `<fieldset class="mc" data-g="${b.qs.join(' ')}"><legend><span class="qn">${b.qs[0]}–${b.qs[b.qs.length - 1]}</span><span>${segs(b.c)}</span></legend><div class="pick small muted">${pickHint(b.qs.length)}</div>${(b.opts || []).map(o => `<label class="opt"><input type="checkbox" data-mq="${b.qs.join(',')}" value="${esc(o.k)}" ${got.includes(o.k) ? 'checked' : ''}><b>${esc(o.k)}</b><span>${segs(o.c)}</span></label>`).join('')}</fieldset>`;
+        }
         const q = (S.v.content.questions || {})[b.q] || {}, val = String(S.answers[b.q] || '');
         return `<fieldset class="mc"><legend><span class="qn">${b.q}</span><span>${segs(b.c)}</span></legend>${(b.opts || []).map(o => `<label class="opt"><input type="radio" name="q${b.q}" data-q="${b.q}" value="${esc(o.k)}" ${val === o.k ? 'checked' : ''}><b>${esc(o.k)}</b><span>${segs(o.c)}</span></label>`).join('')}</fieldset>`;
       }
@@ -291,12 +328,28 @@ function blocks(bs){
     return '';
   }).join('');
 }
+const pickHint = k => `Chọn ${k} đáp án.`;
+// tick một lựa chọn của câu chọn 2 / 3 chữ: quá số chữ thì không nhận; các chữ đã chọn xếp theo A–Z vào các câu của nhóm
+function pickMulti(t){
+  const ns = t.dataset.mq.split(','), box = t.closest('fieldset'), hint = box && box.querySelector('.pick');
+  const on = [...box.querySelectorAll('input[data-mq]:checked')];
+  if (on.length > ns.length){
+    t.checked = false;
+    if (hint){ hint.textContent = `Bạn đã chọn đủ ${ns.length} đáp án. Muốn đổi thì bỏ chọn một đáp án trước nhé.`; hint.classList.add('warn');
+      clearTimeout(hint._t); hint._t = setTimeout(() => { hint.textContent = pickHint(ns.length); hint.classList.remove('warn'); }, 4000); }
+    return;
+  }
+  const vals = on.map(x => x.value).sort();
+  ns.forEach((n, i) => { S.answers[n] = vals[i] || ''; });
+  markDirty(); navState();
+}
 function qTypes(sk){
   const qs = Object.values(((S.v || {}).content || {}).questions || {}), t = new Set();
   qs.forEach(q => {
     if (q.type === 'gap') t.add('điền từ');
     else if ((q.choices || []).includes('NOT GIVEN')) t.add('nhận định thông tin');
     else if ((q.choices || []).some(c => /^[ivx]+$/.test(c))) t.add('chọn tiêu đề đoạn');
+    else if (q.multi > 1) t.add('trắc nghiệm chọn nhiều đáp án');
     else if (q.style === 'radio') t.add('trắc nghiệm');
     else t.add('nối thông tin');
   });
@@ -309,6 +362,7 @@ function qsIn(bs, out){
     if (!b) return;
     seg(b.c);
     if ((b.t === 'q' || b.t === 'mc') && b.q != null) out.push(+b.q);
+    if (Array.isArray(b.qs)) b.qs.forEach(x => out.push(+x));
     (b.opts || []).forEach(o => seg(o.c));
     if (Array.isArray(b.b)) qsIn(b.b, out);          // khung (box); ở đoạn văn, b.b là chữ in đậm
     if (Array.isArray(b.rows)) b.rows.forEach(r => r.forEach(c => qsIn(c.b, out)));
@@ -359,13 +413,14 @@ function navState(){
 function markCur(n){ document.querySelectorAll('#qnums .qb').forEach(b => b.classList.toggle('cur', b.dataset.v === String(n))); }
 function saveLabel(){
   if (!S.v || !S.v.started) return '';
-  return S.saveState === 'ok' ? '✓ Đã tự lưu' : S.saveState === 'saving' ? 'Đang lưu…' : 'Chưa lưu được – đang thử lại';
+  return S.saveState === 'ok' ? '✓ Đã tự lưu' : S.saveState === 'saving' ? 'Đang lưu…' : 'Chưa lưu được, đang thử lại…';
 }
 function timerText(){
   const v = S.v; if (!v || !v.started) return '';
   if (v.sec === 'L' && S.phase === 'play') return 'Đang phát file nghe';
   if (v.sec === 'L' && S.phase !== 'review') return '';
   if (!v.deadline) return '';
+  if (v.sec === 'W' && S.ext.on) return 'Tạm dừng';
   return '⏱ ' + fmt((v.deadline - now()) / 1000);
 }
 function render(){
@@ -390,9 +445,11 @@ function render(){
     paintAll(); unstash();
   } else if (v.sec === 'L'){ const a = $('#atop'); if (a) a.innerHTML = audioTop(); }
   $('#sheet').classList.toggle('blur', !!S.modal);
+  $('#sheet').classList.toggle('hold', assistHold());
   renderNav();
-  $('#modal').innerHTML = S.modal ? viewModal() : '';
-  if (S.modal) hideHl();
+  $('#nav').classList.toggle('hold', assistHold());
+  $('#modal').innerHTML = S.modal || assistHold() ? viewModal() : '';
+  if (S.modal || assistHold()) hideHl();
 }
 // chuyển Part / Passage / Task: không vẽ lại, chỉ ẩn hiện; nhớ chỗ đang cuộn của từng tab
 const curPart = () => document.querySelector(`#sheet .part[data-p="${S.part}"]`);
@@ -422,51 +479,52 @@ function goQ(n){
   n = +n; const p = S.qPart[n]; if (p == null) return;
   setPart(p);
   if (S.v.sec === 'R' && narrow()) setRTab('q');
-  const part = curPart(), t = part && part.querySelector(`[data-q="${n}"]`); if (!t) return;
+  const part = curPart(), t = part && (part.querySelector(`[data-q="${n}"]`) || part.querySelector(`fieldset[data-g~="${n}"]`)); if (!t) return;
   const box = t.closest('.ql, fieldset.mc, .gap') || t;
   box.scrollIntoView({ block:'center', behavior:'smooth' });
   box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash');
   markCur(n);
-  if (DEVICE === 'desktop'){ const f = part.querySelector(`[data-q="${n}"]:checked`) || t; setTimeout(() => { try { f.focus({ preventScroll:true }); } catch (e) {} }, 400); }
+  if (DEVICE === 'desktop'){ const f = part.querySelector(`[data-q="${n}"]:checked`) || (t.matches('fieldset') ? t.querySelector('input:checked, input') : t); setTimeout(() => { try { f.focus({ preventScroll:true }); } catch (e) {} }, 400); }
 }
 function viewWelcome(){
   const d = S.v.durations || {};
   const short = S.v.kind !== 'full';
   return `<div class="narrow stack">
     <div><h1 style="font-size:27px;margin-bottom:6px">Chào mừng bạn đến với bài kiểm tra đầu vào</h1>
-    <p class="muted" style="margin:0">Bài kiểm tra gồm 3 phần, làm lần lượt theo thứ tự dưới đây. Mỗi phần có phần giới thiệu và nút "Bắt đầu" riêng.</p></div>
-    <div class="card guide"><b>Lần đầu làm bài? Xem video hướng dẫn (3 phút)</b>
-      <div class="small muted">Video dùng đề mẫu để minh hoạ, không phải đề bạn sắp làm. Xem video không tính vào giờ làm bài.</div>
+    <p class="muted" style="margin:0">Bài gồm 3 phần, làm lần lượt theo thứ tự bên dưới. Trước mỗi phần có một màn giới thiệu ngắn, bạn bấm "Bắt đầu làm bài" khi đã sẵn sàng.</p></div>
+    <div class="card guide"><b>Lần đầu làm bài online? Xem video hướng dẫn 3 phút</b>
+      <div class="small muted">Video dùng đề mẫu, không phải đề bạn sắp làm. Xem video không bị tính giờ.</div>
       <video controls preload="none" playsinline poster="huong-dan.jpg" aria-label="Video hướng dẫn làm bài"><source src="huong-dan.mp4" type="video/mp4"><source src="huong-dan.webm" type="video/webm">Trình duyệt không phát được video.</video></div>
     <div class="grid3">
-      <div class="card"><div class="kicker">Phần 1</div><b style="font-size:17px">Listening</b><div class="small muted">${S.v.counts.L} câu · hết file nghe + 3 phút kiểm tra</div></div>
+      <div class="card"><div class="kicker">Phần 1</div><b style="font-size:17px">Listening</b><div class="small muted">${S.v.counts.L} câu · nghe hết bài + 3 phút soát lại</div></div>
       <div class="card"><div class="kicker">Phần 2</div><b style="font-size:17px">Reading</b><div class="small muted">${S.v.counts.R} câu · ${Math.round(d.R / 60)} phút</div></div>
       <div class="card"><div class="kicker">Phần 3</div><b style="font-size:17px">Writing</b><div class="small muted">${S.v.counts.W > 1 ? 'Task 1 + Task 2' : '1 đề Task 2'} · ${Math.round(d.W / 60)} phút</div></div>
     </div>
     <div class="card"><b>Cách làm bài trên trang này</b><ul class="notes">
-      <li>Mỗi phần chia thành các tab <b>Part 1, Part 2…</b> (phần Reading là <b>Passage 1, Passage 2…</b>) ở thanh dưới cùng màn hình. Bấm vào tab để chuyển qua lại.</li>
-      <li>Câu nào bạn đã trả lời thì số câu chuyển sang <b style="color:var(--green)">màu xanh lá</b>. Bấm vào số câu để đi đến câu đó.</li>
-      <li>Phần Reading: bài đọc và câu hỏi nằm ở hai khung riêng, mỗi khung có thanh kéo lên xuống riêng. Trên điện thoại, bấm "Bài đọc" hoặc "Câu hỏi" ở phía trên để chuyển.</li>
-      <li>Muốn đánh dấu chữ trong đề (ở cả ba phần): bôi đen chữ bằng cách kéo chuột trái qua chữ (trên điện thoại thì giữ ngón tay lên chữ), rồi bấm nút "Tô màu". Muốn bỏ, bấm vào chỗ đã tô rồi bấm "Bỏ tô".</li>
-      <li>Phần Writing: đề bài ở một bên, ô viết bài ở bên còn lại.${short ? '' : ' Bấm tab <b>Task 1</b>, <b>Task 2</b> ở thanh dưới cùng để chuyển qua lại giữa hai bài viết.'}</li>
+      <li>Mỗi phần chia thành các tab <b>Part 1, Part 2…</b> (Reading là <b>Passage 1, Passage 2…</b>) ở thanh dưới cùng. Bấm vào tab để chuyển qua lại.</li>
+      <li>Câu đã trả lời thì số câu chuyển <b style="color:var(--green)">màu xanh lá</b>. Bấm vào số câu để nhảy tới câu đó.</li>
+      <li>Reading: bài đọc và câu hỏi nằm ở hai khung riêng, cuộn riêng từng khung. Trên điện thoại, bấm "Bài đọc" hoặc "Câu hỏi" ở phía trên để chuyển.</li>
+      <li>Muốn đánh dấu chữ trong đề: bôi đen chữ (kéo chuột qua chữ; trên điện thoại thì giữ ngón tay lên chữ) rồi bấm "Tô màu". Muốn bỏ thì bấm vào chỗ đã tô, chọn "Bỏ tô".</li>
+      <li>Writing: đề bài một bên, ô viết bài một bên.${short ? '' : ' Bấm tab <b>Task 1</b>, <b>Task 2</b> ở thanh dưới cùng để chuyển giữa hai bài.'}</li>
     </ul>
     <div class="demo" aria-hidden="true"><span class="tab on"><b>Part 1</b><span class="tc">2/3</span></span><span class="qb ans">1</span><span class="qb ans">2</span><span class="qb">3</span><span class="small muted">Ví dụ: câu 1 và 2 đã làm, câu 3 chưa làm.</span></div>
     <p class="small" style="margin:10px 0 0">Ví dụ chữ đã tô: The <mark class="hl">first public library</mark> opened in 1850.</p></div>
     <div class="card"><b>Trước khi bắt đầu</b><ul class="notes">
-      <li>Bài làm được tự lưu liên tục. Nếu mất kết nối mạng hoặc lỡ tắt trình duyệt, bạn mở lại link để làm tiếp.</li>
-      <li>Link này chỉ dùng cho một lượt làm bài. Đồng hồ vẫn chạy khi bạn rời khỏi trang.</li>
-      <li>Hệ thống ghi lại số lần bạn rời khỏi trang làm bài.</li>
-      <li>Bạn làm được trên máy tính hoặc điện thoại. Phần Listening nên dùng tai nghe.</li>
-      <li>Thông tin và bài làm chỉ dùng để xếp lớp và được xoá sau 60 ngày.</li>
+      <li>Bài làm được tự lưu liên tục. Lỡ mất mạng hay tắt trình duyệt cũng không sao, bạn mở lại link là làm tiếp được.</li>
+      <li>Link chỉ dùng cho một lượt làm bài, và đồng hồ vẫn chạy khi bạn rời trang.</li>
+      <li>Hệ thống có ghi lại số lần bạn rời khỏi trang làm bài.</li>
+      <li>Làm trên máy tính hay điện thoại đều được. Phần Listening nên đeo tai nghe.</li>
+      <li>Grammarly và các tiện ích sửa lỗi chính tả không hoạt động trong ô làm bài.</li>
+      <li>Thông tin và bài làm của bạn chỉ dùng để xếp lớp, sau 60 ngày sẽ được xoá.</li>
     </ul></div>
     <div><button type="button" class="btn pri lg" data-a="enter">Vào phần Listening</button></div>
   </div>`;
 }
 function audioTop(){
   const v = S.v, dur = v.durations.audio;
-  if (!v.started) return `<div class="card audio"><b>File nghe</b><div class="small muted">File nghe phát một lần sau khi bạn bấm "Bắt đầu làm bài".</div></div>`;
-  if (S.phase === 'review') return `<div class="card audio"><b>Đã hết file nghe</b><div class="prog"><i style="width:100%"></i></div><div class="review">Bạn còn <span id="rv">${fmt((v.deadline - now()) / 1000)}</span> để kiểm tra lại đáp án. Hết giờ, bài được nộp tự động.</div></div>`;
-  return `<div class="card audio"><div class="row" style="justify-content:space-between"><b>Đang phát file nghe</b><span class="small muted" id="apos">${fmt(curPos())} / ${fmt(dur)}</span></div><div class="prog"><i id="abar" style="width:${Math.min(100, curPos() / dur * 100)}%"></i></div><div class="small muted">File nghe không tua, không dừng được.</div></div>`;
+  if (!v.started) return `<div class="card audio"><b>File nghe</b><div class="small muted">File nghe sẽ phát một lần ngay khi bạn bấm "Bắt đầu làm bài".</div></div>`;
+  if (S.phase === 'review') return `<div class="card audio"><b>Đã hết file nghe</b><div class="prog"><i style="width:100%"></i></div><div class="review">Bạn còn <span id="rv">${fmt((v.deadline - now()) / 1000)}</span> để soát lại đáp án. Hết giờ, bài sẽ tự nộp.</div></div>`;
+  return `<div class="card audio"><div class="row" style="justify-content:space-between"><b>Đang phát file nghe</b><span class="small muted" id="apos">${fmt(curPos())} / ${fmt(dur)}</span></div><div class="prog"><i id="abar" style="width:${Math.min(100, curPos() / dur * 100)}%"></i></div><div class="small muted">File nghe chạy liền một mạch, không tua hay dừng được.</div></div>`;
 }
 // cuối mỗi tab: nút sang tab sau; tab cuối: nút nộp
 function endBtn(i){
@@ -489,9 +547,9 @@ function viewSection(){
     const k = taskKey(t, i), text = S.writing[k] || '', n = words(text);
     return `<div class="part split wsplit" data-p="${i}" ${hid(i)}>`
       + `<section class="card paper pane pane-p" data-hl="W${i}" aria-label="Đề bài ${esc(tabName(t, i))}"><h2>${esc(t.title)}</h2>${blocks(t.blocks)}</section>`
-      + `<section class="card pane editor" aria-label="Bài viết ${esc(tabName(t, i))}"><div class="row" style="justify-content:space-between"><label for="w${k}" style="font-weight:600">Bài viết của bạn – ${esc(tabName(t, i))}</label><span class="small muted">Bài được tự lưu khi bạn gõ.</span></div>`
-      + `<textarea class="essay" id="w${k}" data-w="${k}" data-min="${t.min_words}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" placeholder="Gõ bài viết của bạn vào đây…">${esc(text)}</textarea>`
-      + `<div class="alert" id="pw${k}" hidden>Không dán chữ vào ô làm bài được. Hãy tự gõ bài viết của bạn.</div>`
+      + `<section class="card pane editor" aria-label="Bài viết ${esc(tabName(t, i))}"><div class="row" style="justify-content:space-between"><label for="w${k}" style="font-weight:600">Bài viết của bạn – ${esc(tabName(t, i))}</label><span class="small muted">Bài tự lưu trong lúc bạn gõ.</span></div>`
+      + `<textarea class="essay" id="w${k}" data-w="${k}" data-min="${t.min_words}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${NOASSIST} placeholder="Gõ bài viết của bạn vào đây…">${esc(text)}</textarea>`
+      + `<div class="alert" id="pw${k}" hidden>Ô làm bài không nhận chữ dán vào. Bạn tự gõ bài nhé.</div>`
       + `<div class="row" style="justify-content:space-between"><span class="count ${n === 0 ? '' : n < t.min_words ? 'low' : 'okc'}" id="c${k}">Số chữ: ${n} (ít nhất ${t.min_words})</span>${endBtn(i)}</div></section></div>`;
   }).join('');
 }
@@ -583,7 +641,18 @@ document.addEventListener('scroll', () => {
   const sel = window.getSelection(); if (sel && sel.rangeCount && !sel.isCollapsed) showHlBtn(false, sel.getRangeAt(0).getBoundingClientRect()); else hideHl();
 }, true);
 window.addEventListener('resize', hideHl);
+const assistHold = () => !!(S.v && S.v.sec === 'W' && S.ext.block.length && !(S.v.started && S.ext.noPause));
+function viewAssist(){
+  const names = S.ext.block.join(', '), started = S.v && S.v.started;
+  return `<div class="scrim"><div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="mt"><div><div class="kicker" style="color:var(--accent-ink)">Phần 3 / 3 · Writing</div><h2 id="mt">Cần tắt tiện ích sửa ngữ pháp</h2></div>
+    <ul class="notes" style="margin:0"><li>Trình duyệt đang bật: <b>${esc(names)}</b>.</li>
+      <li>Tiện ích này tự sửa câu chữ nên không được dùng khi làm Writing, và trang chưa tắt được nó.</li>
+      <li>Cách tắt: bấm biểu tượng mảnh ghép (Tiện ích) cạnh thanh địa chỉ, tắt tiện ích trên. Hoặc mở link bằng một trình duyệt khác không cài tiện ích.</li>
+      <li>${started ? 'Đề bài đang được ẩn và đồng hồ Writing tạm dừng cho tới khi bạn tắt xong (tạm dừng tối đa 30 phút).' : 'Đồng hồ Writing chưa chạy. Tắt xong là bạn bắt đầu làm được.'}</li></ul>
+    <div class="row end"><button type="button" class="btn" data-a="assist-check">Kiểm tra lại</button><button type="button" class="btn pri" data-a="assist-reload">Tắt xong, tải lại trang</button></div></div></div>`;
+}
 function viewModal(){
+  if (assistHold()) return viewAssist();
   const m = S.modal, v = S.v;
   if (m.type === 'intro'){
     const lines = m.lines.map(l => `<li>${esc(l)}</li>`).join('');
@@ -610,41 +679,41 @@ function viewResult(){
     : `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between"><b style="font-size:16px">${SK[k]}</b><span class="muted small">${x.correct == null ? '' : `${x.correct}/${x.total} câu đúng`}</span></div><div class="band">${x.band == null ? '–' : Number(x.band).toFixed(1)}</div>${x.comment ? `<p class="small" style="margin:0;color:var(--text2)">${esc(x.comment)}</p>` : ''}</div>`;
   // bài bỏ dở: máy chủ tự nộp khi quá 24 giờ không làm tiếp (Quản lý chốt 19/10)
   const head = skip.length
-    ? `<div class="card stack"><h1 style="font-size:21px">Bài kiểm tra đã được tự nộp</h1><p style="margin:0">Bài được tự nộp vì đã quá 24 giờ bạn không làm tiếp. Phần chưa làm (${skip.map(k => SK[k]).join(', ')}) được tính là bỏ trống.</p><p style="margin:0">Nếu cần làm lại, hãy nhắn trung tâm qua Zalo.</p></div>`
-    : `<div class="row" style="gap:14px;flex-wrap:nowrap"><span class="pill p-ok" style="width:46px;height:46px;justify-content:center;font-size:22px;padding:0">✓</span><div><h1 style="font-size:24px">Bạn đã nộp bài thành công</h1><div class="muted">Cảm ơn bạn đã hoàn thành bài kiểm tra đầu vào.</div></div></div>`;
+    ? `<div class="card stack"><h1 style="font-size:21px">Bài kiểm tra đã được tự nộp</h1><p style="margin:0">Bài đã được tự nộp vì quá 24 giờ bạn không làm tiếp. Phần chưa làm (${skip.map(k => SK[k]).join(', ')}) được tính là để trống.</p><p style="margin:0">Nếu muốn làm lại, bạn nhắn trung tâm qua Zalo nhé.</p></div>`
+    : `<div class="row" style="gap:14px;flex-wrap:nowrap"><span class="pill p-ok" style="width:46px;height:46px;justify-content:center;font-size:22px;padding:0">✓</span><div><h1 style="font-size:24px">Bạn đã nộp bài thành công</h1><div class="muted">Cảm ơn bạn đã dành thời gian làm bài.</div></div></div>`;
   return `<div class="narrow stack">${head}
     <div class="res">${card('L', r.L || {})}${card('R', r.R || {})}</div>
-    <div class="card"><b>Writing</b><p class="small" style="margin:4px 0 0;color:var(--text2)">${skip.includes('W') ? 'Bạn chưa làm phần này.' : 'Bài viết của bạn sẽ được giáo viên chấm. Trung tâm sẽ liên hệ với bạn để báo kết quả đầy đủ và tư vấn xếp lớp.'}</p></div></div>`;
+    <div class="card"><b>Writing</b><p class="small" style="margin:4px 0 0;color:var(--text2)">${skip.includes('W') ? 'Bạn chưa làm phần này.' : 'Giáo viên sẽ chấm bài viết của bạn, sau đó trung tâm liên hệ để báo kết quả đầy đủ và tư vấn lớp phù hợp.'}</p></div></div>`;
 }
 function showError(msg, withCode){
   $('#bar').hidden = true; $('#nav').hidden = true; S.key = null; hideHl();
   document.body.classList.remove('testing', 'split-mode');
   $('#main').innerHTML = `<div class="narrow stack"><div class="card stack"><h1 style="font-size:21px">Chưa mở được bài kiểm tra</h1><p style="margin:0">${esc(msg)}</p>${withCode ? codeForm() : ''}</div></div>`;
 }
-const codeForm = () => `<form id="codeform" class="stack" style="gap:10px"><label class="field" for="code">Mã 8 ký tự trung tâm gửi<input id="code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="VD: ABCD2345"></label><div class="alert" id="codeerr" hidden></div><div><button class="btn pri" type="submit">Vào bài kiểm tra</button></div></form>`;
+const codeForm = () => `<form id="codeform" class="stack" style="gap:10px"><label class="field" for="code">Mã 8 ký tự trung tâm gửi bạn<input id="code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="VD: ABCD2345"></label><div class="alert" id="codeerr" hidden></div><div><button class="btn pri" type="submit">Vào bài kiểm tra</button></div></form>`;
 
 /* ---------------------------------------------------------------- popup giới thiệu */
 function introFor(sk){
   const v = S.v, d = v.durations;
   if (sk === 'L') return { kicker:'Phần 1 / 3', title:'Listening', lines:[
-    `${v.counts.L} câu hỏi${qTypes().length ? ' gồm: ' + qTypes().join(', ') : ''}.`,
-    'File nghe phát một lần, không tua và không dừng được.',
-    'Khi hết file nghe, bạn có 3 phút để kiểm tra lại đáp án.',
-    'Bấm tab Part 1, Part 2… ở thanh dưới cùng để chuyển phần. Câu đã trả lời có số câu màu xanh lá.',
-    'Hãy đeo tai nghe và chỉnh âm lượng trước khi bấm "Bắt đầu làm bài".'] };
+    `${v.counts.L} câu${qTypes().length ? ', gồm các dạng: ' + qTypes().join(', ') : ''}.`,
+    'File nghe phát một lần, không tua hay dừng được.',
+    'Nghe xong, bạn có thêm 3 phút để soát lại đáp án.',
+    'Chuyển phần bằng tab Part 1, Part 2… ở thanh dưới cùng. Câu đã trả lời có số màu xanh lá.',
+    'Đeo tai nghe và chỉnh âm lượng trước khi bấm "Bắt đầu làm bài" nhé.'] };
   if (sk === 'R') return { kicker:'Phần 2 / 3', title:'Reading', lines:[
-    `${v.counts.R} câu hỏi${qTypes().length ? ' gồm: ' + qTypes().join(', ') : ''}.`,
-    `Thời gian làm bài: ${Math.round(d.R / 60)} phút, tính từ lúc bấm "Bắt đầu làm bài".`,
-    'Bài đọc và câu hỏi có thanh kéo lên xuống riêng. Bấm tab Passage ở thanh dưới cùng để chuyển bài đọc.',
-    'Bôi đen chữ rồi bấm "Tô màu" để đánh dấu. Bấm vào chỗ đã tô rồi bấm "Bỏ tô" để xoá.',
-    'Hết giờ, bài được nộp tự động.'] };
+    `${v.counts.R} câu${qTypes().length ? ', gồm các dạng: ' + qTypes().join(', ') : ''}.`,
+    `Bạn có ${Math.round(d.R / 60)} phút, tính từ lúc bấm "Bắt đầu làm bài".`,
+    'Bài đọc và câu hỏi cuộn riêng từng khung. Đổi bài đọc bằng tab Passage ở thanh dưới cùng.',
+    'Bôi đen chữ rồi bấm "Tô màu" để đánh dấu; bấm vào chỗ đã tô, chọn "Bỏ tô" để xoá.',
+    'Hết giờ, bài sẽ tự nộp.'] };
   const ts = ((v.content || {}).tasks || []);
   return { kicker:'Phần 3 / 3', title:'Writing', lines:[
     ts.map(t => `${t.title}: ít nhất ${t.min_words} chữ.`).join(' '),
-    `Thời gian làm bài: ${Math.round(d.W / 60)} phút, tính từ lúc bấm "Bắt đầu làm bài".`,
-    ...(ts.length > 1 ? ['Bấm tab Task 1, Task 2 ở thanh dưới cùng để chuyển qua lại giữa hai bài viết.'] : []),
-    'Không dán chữ vào ô làm bài được. Hãy tự gõ bài viết của bạn.',
-    'Hết giờ, bài được nộp tự động.'] };
+    `Bạn có ${Math.round(d.W / 60)} phút, tính từ lúc bấm "Bắt đầu làm bài".`,
+    ...(ts.length > 1 ? ['Chuyển giữa hai bài bằng tab Task 1, Task 2 ở thanh dưới cùng.'] : []),
+    'Ô làm bài không nhận chữ dán vào, Grammarly và các tiện ích sửa lỗi cũng không chạy trong ô này. Bạn tự gõ bài nhé.',
+    'Hết giờ, bài sẽ tự nộp.'] };
 }
 
 /* ---------------------------------------------------------------- file nghe */
@@ -659,7 +728,7 @@ async function loadAudio(){
     for (;;){ const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; if (total){ const p = Math.min(99, Math.floor(got / total * 100)); if (p !== S.audioPct){ S.audioPct = p; refreshModal(); } } }
     S.audioUrl = URL.createObjectURL(new Blob(parts, { type: r.headers.get('content-type') || 'audio/mpeg' }));
     aud.src = S.audioUrl; aud.load(); S.audioPct = 100;
-  } catch (e){ S.audioErr = 'Chưa tải được file nghe. Kiểm tra kết nối mạng rồi bấm "Tải lại file nghe".'; }
+  } catch (e){ S.audioErr = 'File nghe chưa tải được. Bạn kiểm tra mạng rồi bấm "Tải lại file nghe".'; }
   S.audioLoading = false;
   refreshModal();
 }
@@ -682,7 +751,7 @@ function playFromAnchor(){
   const go = () => {
     try { aud.currentTime = expectedPos(); } catch (e) {}
     aud.muted = false;
-    aud.play().catch(() => { if (S.phase !== 'play') return; S.modal = { type:'msg', title:'Bấm để nghe tiếp', body:'Trình duyệt cần bạn bấm một lần nữa để phát âm thanh.', ok:'Nghe tiếp', act:'play' }; render(); });
+    aud.play().catch(() => { if (S.phase !== 'play') return; S.modal = { type:'msg', title:'Bấm để nghe tiếp', body:'Trình duyệt cần bạn bấm thêm một lần để phát âm thanh.', ok:'Nghe tiếp', act:'play' }; render(); });
   };
   if (aud.readyState >= 1) go(); else aud.addEventListener('loadedmetadata', go, { once:true });
   render();
@@ -700,7 +769,16 @@ aud.addEventListener('pause', () => {
 let saveTimer = null;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function markDirty(){ S.dirty = true; clearTimeout(saveTimer); saveTimer = setTimeout(() => save(false), 1200); }
-const typingOut = list => list.map(e => ({ k: e.k, t: e.t, e: e.e, i: e.i, d: e.d, s: e.s }));
+// thứ tự các lần lưu (Quản lý yêu cầu 30/10): số tăng dần trên máy này, kể cả sau khi tải lại trang. Tin lưu bài gửi trước mà tới
+// máy chủ sau (mạng chậm) thì máy chủ không ghi đè đáp án / bài viết mới hơn bằng bản cũ.
+function stampAt(){
+  let a = Date.now();
+  try { const k = 'gl_at_' + String(TOKEN).slice(0, 12), l = +localStorage.getItem(k) || 0; if (a <= l) a = l + 1; localStorage.setItem(k, String(a)); } catch (e) {}
+  if (a <= (S.at || 0)) a = S.at + 1;
+  S.at = a;
+  return a;
+}
+const typingOut = list => list.map(e => (e.r ? { k: e.k, t: e.t, e: e.e, i: e.i, d: e.d, s: e.s, r: e.r } : { k: e.k, t: e.t, e: e.e, i: e.i, d: e.d, s: e.s }));
 async function save(force){
   const v = S.v; if (!v || !v.started || v.sec === 'done' || S.blocked) return;
   if (S.saving){ S.dirty = true; return; }
@@ -711,6 +789,7 @@ async function save(force){
   if (leaves.length) body.leaves = leaves;
   if (v.sec === 'L' && S.phase === 'play') body.pos = aud.currentTime;
   if (!force && !S.dirty && !typing.length && !leaves.length && body.pos == null) return;
+  body.at = stampAt();
   S.saving = true; S.dirty = false; setSave('saving');
   let moved = false;
   try {
@@ -731,7 +810,7 @@ window.addEventListener('pagehide', () => {
   const v = S.v; if (!v || !v.started || v.sec === 'done' || S.blocked) return;
   back();
   const body = { action:'save', token: TOKEN, key: DEVKEY, device: DEVICE, section: v.sec, answers: v.sec !== 'W' ? S.answers : undefined, writing: v.sec === 'W' ? S.writing : undefined,
-    typing: typingOut(S.typing.splice(0)), leaves: S.leaves.splice(0), pos: v.sec === 'L' && S.phase === 'play' ? aud.currentTime : undefined };
+    typing: typingOut(S.typing.splice(0)), leaves: S.leaves.splice(0), pos: v.sec === 'L' && S.phase === 'play' ? aud.currentTime : undefined, at: stampAt() };
   try { fetch(FN, { method:'POST', keepalive:true, headers:{ 'Content-Type':'application/json', 'apikey': C.key || '' }, body: JSON.stringify(body) }); } catch (e) {}
 });
 window.addEventListener('beforeunload', e => { if (S.v && S.v.started && S.v.sec !== 'done' && !S.leaving){ e.preventDefault(); e.returnValue = ''; } });
@@ -753,9 +832,41 @@ function beat(){
 setInterval(beat, 20000);
 window.addEventListener('blur', goneAway); window.addEventListener('focus', back);
 
+/* ---------------------------------------------------------------- tiện ích sửa ngữ pháp */
+async function assistTick(force){
+  const v = S.v; if (!v || v.sec === 'done' || S.blocked || !TOKEN) return;
+  const r = assistScan(), key = r.block.join(',') + '|' + r.seen.join(',');
+  const was = assistHold();
+  S.ext.block = r.block; S.ext.seen = r.seen;
+  if (assistHold() !== was || force){
+    if (assistHold()){ try { document.activeElement && document.activeElement.blur(); } catch (e) {} }
+    render();
+  }
+  if (key === S.ext.sent && !force) return;
+  S.ext.sent = key;
+  try {
+    const x = await api({ action:'assist', token: TOKEN, on: r.block.length > 0, tools: r.block, seen: r.seen });
+    if (x && x.assist) S.ext.on = !!x.assist.on;
+    if (x && x.deadline && S.v && S.v.sec === v.sec) S.v.deadline = x.deadline;
+    if (x && x.now) S.offset = x.now - Date.now();
+  } catch (e){
+    if (e.status === 400 && v.sec === 'W' && v.started){ S.ext.noPause = true; render(); }   // máy chủ bản cũ: không dừng giờ được thì không ẩn đề
+    S.ext.sent = '';
+  }
+  setSave(S.saveState); const t = $('#timer'); if (t) t.textContent = timerText();
+}
+setInterval(() => assistTick(false), 3000);
+let assistMo = null;
+// tiện ích thường gắn phần của nó vào <html> / <body>: thấy là quét ngay (chữ trong đề thay đổi thì không cần quét)
+try { assistMo = new MutationObserver(() => { clearTimeout(assistMo._t); assistMo._t = setTimeout(() => assistTick(false), 400); });
+      [document.documentElement, document.body].forEach(el => assistMo.observe(el, { childList:true, attributes:true })); } catch (e) {}
+
 /* ---------------------------------------------------------------- Writing: chặn dán, ghi quá trình gõ */
 function words(t){ t = String(t || '').trim(); return t ? t.split(/\s+/).length : 0; }
-function logTyping(k, a, b){
+let lastKey = 0, lastInType = '';
+document.addEventListener('keydown', () => { lastKey = Date.now(); }, true);
+document.addEventListener('beforeinput', e => { if (e.target && e.target.dataset && e.target.dataset.w) lastInType = e.inputType || ''; }, true);
+function logTyping(k, a, b, r){
   // so sánh chữ trước và sau mỗi lần gõ: vị trí i, xoá d ký tự, thêm chuỗi s. Gõ liền nhau được gộp (tối đa 3 giây, 40 ký tự)
   let i = 0;
   while (i < a.length && i < b.length && a[i] === b[i]) i++;
@@ -764,10 +875,10 @@ function logTyping(k, a, b){
   const d = ea - i, s = b.slice(i, eb), t = Math.round(now());
   if (!d && !s) return;
   const last = S.typing[S.typing.length - 1];
-  if (last && last.k === k && !d && !last.d && last.i + last.s.length === i && t - last.w < 1500 && t - last.t < 3000 && last.s.length + s.length <= 40){
+  if (!r && last && !last.r && last.k === k && !d && !last.d && last.i + last.s.length === i && t - last.w < 1500 && t - last.t < 3000 && last.s.length + s.length <= 40){
     last.s += s; last.w = t; last.e = t - last.t; return;
   }
-  S.typing.push({ k, t, e: 0, i, d, s, w: t });
+  S.typing.push(r ? { k, t, e: 0, i, d, s, w: t, r } : { k, t, e: 0, i, d, s, w: t });
 }
 function noPaste(e){
   const t = e.target; if (!t || !t.dataset || !t.dataset.w) return;
@@ -782,14 +893,19 @@ document.addEventListener('input', e => {
   if (t.dataset && t.dataset.q){ S.answers[t.dataset.q] = t.value; markDirty(); navState(); return; }
   if (t.dataset && t.dataset.w){
     const k = t.dataset.w, old = S.writing[k] || '';
-    logTyping(k, old, t.value); S.writing[k] = t.value;
+    // r = 1: trình duyệt / tiện ích / bàn phím thay chữ (gợi ý sửa); r = 2 (máy tính): chữ hiện ra mà không có phím nào được bấm
+    const added = Math.max(0, t.value.length - old.length);
+    const r = lastInType === 'insertReplacementText' ? 1
+      : (DEVICE === 'desktop' && Date.now() - lastKey > 1000 && !/^(history|deleteByCut|insertFromPaste|insertFromDrop)/.test(lastInType) && (added >= 2 || t.value.length === old.length && t.value !== old)) ? 2 : 0;
+    lastInType = '';
+    logTyping(k, old, t.value, r); S.writing[k] = t.value;
     const n = words(t.value), min = +t.dataset.min, c = $('#c' + k);
     if (c){ c.textContent = `Số chữ: ${n} (ít nhất ${min})`; c.className = 'count ' + (n === 0 ? '' : n < min ? 'low' : 'okc'); }
     markDirty(); navState();
   }
 });
-document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.q){ S.answers[t.dataset.q] = t.value; markDirty(); navState(); } });
-document.addEventListener('focusin', e => { const t = e.target; if (t.dataset && t.dataset.q) markCur(t.dataset.q); });
+document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.mq){ pickMulti(t); return; } if (t.dataset && t.dataset.q){ S.answers[t.dataset.q] = t.value; markDirty(); navState(); } });
+document.addEventListener('focusin', e => { const t = e.target; if (t.dataset && t.dataset.q) markCur(t.dataset.q); else if (t.dataset && t.dataset.mq) markCur(t.dataset.mq.split(',')[0]); });
 
 /* ---------------------------------------------------------------- nút bấm */
 const ACT = {
@@ -797,7 +913,7 @@ const ACT = {
   enter: () => { document.querySelectorAll('video').forEach(x => { try { x.pause(); } catch (e) {} }); S.welcome = false; S.modal = Object.assign({ type:'intro' }, introFor('L')); render(); loadAudio(); },
   'reload-audio': () => { S.audioUrl = null; loadAudio(); },
   begin: async () => {
-    if (S.busy) return; S.busy = true; refreshModal();
+    if (S.busy || assistHold()) return; S.busy = true; refreshModal();
     if (S.v.sec === 'L') unlockAudio();
     try {
       const v = await api({ action:'begin', token: TOKEN, section: S.v.sec });
@@ -808,12 +924,14 @@ const ACT = {
     finally { S.busy = false; }
   },
   'retry-intro': () => { S.modal = Object.assign({ type:'intro' }, introFor(S.v.sec)); render(); },
+  'assist-check': () => { assistTick(true); },
+  'assist-reload': () => { S.leaving = true; save(true).finally(() => location.reload()); },
   play: () => { S.modal = null; playFromAnchor(); },
   submit: () => {
     const sk = S.v.sec;
     const miss = sk === 'W' ? [] : Object.keys(S.v.content.questions || {}).filter(n => !answered(n)).sort((a, b) => a - b), blank = miss.length;
     S.modal = { type:'confirm', title: sk === 'W' ? 'Nộp bài?' : `Nộp phần ${SK[sk]}?`,
-      body: (blank ? `Bạn còn ${blank} câu chưa trả lời (câu ${miss.slice(0, 12).join(', ')}${blank > 12 ? ', …' : ''}). ` : '') + 'Sau khi nộp, bạn không quay lại sửa phần này được.', ok: sk === 'W' ? 'Nộp bài' : 'Nộp phần này' };
+      body: (blank ? `Bạn còn ${blank} câu chưa trả lời (câu ${miss.slice(0, 12).join(', ')}${blank > 12 ? ', …' : ''}). ` : '') + 'Nộp rồi thì không quay lại sửa phần này được nữa.', ok: sk === 'W' ? 'Nộp bài' : 'Nộp phần này' };
     render();
   },
   cancel: () => { S.modal = null; render(); },
@@ -827,7 +945,7 @@ async function submitNow(){
   if (S.submitting || S.blocked) return; S.submitting = true; S.busy = true; render();
   clearTimeout(saveTimer);
   for (let i = 0; i < 100 && S.saving; i++) await sleep(100);      // chờ lần tự lưu đang chạy xong
-  const v = S.v, body = { action:'submit', token: TOKEN, section: v.sec };
+  const v = S.v, body = { action:'submit', token: TOKEN, section: v.sec, at: stampAt() };
   if (v.sec !== 'W') body.answers = S.answers; else body.writing = S.writing;
   const typing = S.typing.splice(0), leaves = S.leaves.splice(0);
   if (typing.length) body.typing = typingOut(typing);
@@ -841,7 +959,7 @@ async function submitNow(){
     window.scrollTo(0, 0);
   } catch (e){
     S.typing = typing.concat(S.typing); S.leaves = leaves.concat(S.leaves);
-    S.modal = { type:'msg', title:'Chưa nộp được', body: e.message + ' Bài làm vẫn được giữ, bấm "Thử lại" để nộp.', ok:'Thử lại', act:'confirm' };
+    S.modal = { type:'msg', title:'Chưa nộp được', body: e.message + ' Bài làm vẫn còn nguyên, bạn bấm "Thử lại" để nộp.', ok:'Thử lại', act:'confirm' };
   }
   finally { S.submitting = false; S.busy = false; render(); }
 }
@@ -871,7 +989,7 @@ setInterval(() => {
     }
     const rv = $('#rv'); if (rv) rv.textContent = fmt((v.deadline - now()) / 1000);
   }
-  if (v.deadline && now() >= v.deadline && !S.submitting && !S.autoSent){ S.autoSent = v.sec; submitAuto(); }
+  if (v.deadline && now() >= v.deadline && !S.submitting && !S.autoSent && !(v.sec === 'W' && S.ext.on)){ S.autoSent = v.sec; submitAuto(); }
 }, 250);
 async function submitAuto(){
   S.modal = null;
@@ -885,6 +1003,7 @@ async function submitAuto(){
 function setView(v, keepAnswers){
   if (S.v && S.v.sec === v.sec && $('#sheet')) stash();         // cùng phần: nhớ chỗ đang cuộn trước khi vẽ lại
   S.v = v; S.offset = v.now - Date.now();
+  if (v.assist) S.ext.on = !!v.assist.on;
   if (!keepAnswers || !Object.keys(S.answers).length) S.answers = Object.assign({}, v.answers || {});
   if (v.sec === 'W' && (!keepAnswers || !Object.keys(S.writing).length)) S.writing = Object.assign({}, v.writing || {});
   if (v.sec !== 'L' && S.phase) S.phase = '';
@@ -922,7 +1041,7 @@ function afterOpen(v){
     const r = v.resume;
     S.modal = { type:'intro', kicker:'Phần 1 / 3', title:'Nghe tiếp phần Listening', button:'Nghe tiếp',
       lines: r && r.rewind ? [`Bài làm đã được lưu. File nghe sẽ phát tiếp từ mốc ${fmt(r.pos)} (lùi lại 15 giây so với lúc bạn thoát).`, `Bạn được lùi 15 giây tối đa 2 lần. Đây là lần thứ ${r.drops}.`]
-           : r ? ['Bài làm đã được lưu. Bạn đã thoát quá 2 lần, nên file nghe phát tiếp theo đúng thời gian thật, đoạn đã lỡ không nghe lại được.']
+           : r ? ['Bài làm vẫn được lưu. Vì bạn đã thoát quá 2 lần, file nghe phát tiếp theo đúng thời gian thật, đoạn đã lỡ không nghe lại được.']
            : ['Bài làm đã được lưu. File nghe phát tiếp theo đúng thời gian thật.'] };
     loadAudio();
   }
@@ -934,7 +1053,7 @@ async function start(){
     setView(v, false); afterOpen(v); render();
   } catch (e){ if (e.busy) return; showError(e.message, e.status === 404 && !/^[0-9a-f]{64}$/.test(TOKEN)); if (e.net) setTimeout(start, 4000); }
 }
-if (!TOKEN){ $('#main').innerHTML = `<div class="narrow stack"><div class="card stack"><h1 style="font-size:21px">Vào bài kiểm tra đầu vào</h1><p style="margin:0" class="muted">Bấm vào link trung tâm gửi qua Zalo. Nếu không mở được link, nhắn trung tâm qua Zalo để nhận mã 8 ký tự rồi nhập vào ô dưới đây.</p>${codeForm()}</div></div>`; }
+if (!TOKEN){ $('#main').innerHTML = `<div class="narrow stack"><div class="card stack"><h1 style="font-size:21px">Vào bài kiểm tra đầu vào</h1><p style="margin:0" class="muted">Bạn mở bài bằng link trung tâm gửi qua Zalo. Nếu link không mở được, nhắn trung tâm để lấy mã 8 ký tự rồi nhập vào ô dưới đây.</p>${codeForm()}</div></div>`; }
 else if (/^[A-Za-z0-9]{8}$/.test(TOKEN)){ api({ action:'code', code: TOKEN }).then(r => { TOKEN = r.token; history.replaceState(null, '', '?ma=' + encodeURIComponent(TOKEN)); start(); }, e => showError(e.message, true)); }
 else start();
 })();
