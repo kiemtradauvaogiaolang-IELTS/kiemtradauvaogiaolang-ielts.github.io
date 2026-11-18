@@ -15,107 +15,139 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#F7F5F3;--surface:#FFFFFF;--line:#E5E0DC;--line2:#F0ECE9;--text:#1C1A19;--text2:#3B3735;--muted:#6B6460;--faint:#9A928D;
-  --accent:#CC1D0C;--accent-ink:#A8170A;--accent-soft:#FBEDEC;--ok:#1D6B3A;--ok-soft:#E6F2EA;--warn:#8A4B00;--warn-soft:#FFF1DD;
-  --bad:#A80000;--info:#1F4E9A;--info-soft:#E8EFFA;--green:#1E8449;--font:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif}
+/* Giao diện mới (Quản lý duyệt 18/11): tờ đề trắng bo góc, tiêu đề Part gạch đỏ, nút chính đỏ logo, câu đã trả lời xanh lá.
+   Quản lý dặn thêm 18/11: độ sáng giữ như cũ, không hiện mờ dần ("đừng có lúc nào cũng mờ mờ ảo ảo"); chỗ nào cần làm mờ thì như cũ;
+   chữ học sinh gõ (đáp án Listening, Reading, bài Writing) màu đen, không dùng xanh dương. */
+:root{--bg:#F7F5F3;--surface:#FFFFFF;--line:#E5E0DC;--line2:#F0ECE9;--rule2:#D9D1CC;--text:#1C1A19;--text2:#3B3735;--muted:#6B6460;--faint:#9A928D;
+  --accent:#CC1D0C;--accent-ink:#A8170A;--accent-soft:#FCEFEC;--ok:#1E7A46;--ok-soft:#EDF6F0;--warn:#8A4B00;--warn-soft:#FFF1DD;
+  --bad:#A8170A;--info:#24408E;--info-soft:#EBF0F9;--ink:#24408E;--ink-soft:#EBF0F9;--green:#1E7A46;--ease:cubic-bezier(.16,1,.3,1);
+  --font:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.55}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+::selection{background:#F4D7D2;color:var(--text)}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1,h2,h3{margin:0;line-height:1.3;text-wrap:balance}
-.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 header.top{background:var(--surface);border-bottom:3px solid var(--accent)}
 header.top .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between;padding-top:12px;padding-bottom:12px}
-.brand{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.brand img{height:40px;width:auto;display:block}
-.brand .t{border-left:1px solid var(--line);padding-left:16px}
-.brand .t b{display:block;font-size:16px}
+.brand{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand img{height:38px;width:auto;display:block}
+.brand .t{border-left:1px solid var(--line);padding-left:18px;line-height:1.35}
+.brand .t b{display:block;font-size:15.5px;font-weight:600}
 .brand .t span{font-size:12.5px;color:var(--muted)}
-.who{display:flex;align-items:center;gap:10px;font-size:13.5px}
+.who{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;font-size:13.5px}
+.who b{font-weight:600}
 .pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:600;white-space:nowrap}
 .p-acc{background:var(--accent-soft);color:var(--accent-ink)} .p-ok{background:var(--ok-soft);color:var(--ok)} .p-warn{background:var(--warn-soft);color:var(--warn)}
+/* thanh trên lúc làm bài: 3 phần (gạch đỏ dưới phần đang làm), trạng thái lưu, đồng hồ */
 .bar{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
-.bar .wrap{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;padding-top:9px;padding-bottom:9px}
-.steps{display:flex;gap:6px;flex-wrap:wrap}
-.step{font-size:13px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--surface)}
-.step.on{border-color:var(--accent);background:var(--accent);color:#fff;font-weight:600}
-.step.done{border-color:#BFD9C8;background:var(--ok-soft);color:var(--ok)}
-.status{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.saved{font-size:12.5px;display:inline-flex;align-items:center;gap:6px;color:var(--ok)}
+.bar .wrap{display:flex;flex-wrap:wrap;gap:4px 22px;align-items:center;justify-content:space-between;padding-top:4px;padding-bottom:4px}
+.steps{display:flex;gap:26px;flex-wrap:wrap}
+.step{position:relative;display:inline-flex;align-items:center;gap:6px;height:40px;font-size:14px;font-weight:600;color:var(--muted)}
+.step.on{color:var(--text)}
+.step.on::after{content:"";position:absolute;left:0;right:0;bottom:3px;height:2px;border-radius:2px;background:var(--accent);animation:pen .5s var(--ease) both}
+.step.done{color:var(--ok)}
+.status{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.saved{font-size:13px;display:inline-flex;align-items:center;gap:6px;color:var(--text2)}
 .saved.warn{color:var(--warn)}
-.timer{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;padding:5px 12px;border-radius:8px;background:var(--line2);font-variant-numeric:tabular-nums}
-.timer.low{background:var(--accent-soft);color:var(--bad)}
+.timer{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:14px;color:var(--text);font-variant-numeric:tabular-nums;transition:color .2s var(--ease)}
+.timer::before{content:"";width:15px;height:15px;flex:none;background:currentColor;opacity:.75;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='13' r='8'/%3E%3Cpath d='M12 9v4l2.5 2M9.5 2.5h5'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='13' r='8'/%3E%3Cpath d='M12 9v4l2.5 2M9.5 2.5h5'/%3E%3C/svg%3E") center/contain no-repeat}
+.timer.low{color:var(--bad)}
 .timer:empty,.saved:empty{display:none}
-main.wrap{padding-top:24px;padding-bottom:56px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
-.guide video{display:block;width:100%;aspect-ratio:16/9;margin-top:10px;border-radius:10px;background:#f3ece8;border:1px solid var(--line)}
+main.wrap{padding-top:32px;padding-bottom:64px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 26px}
 .stack{display:flex;flex-direction:column;gap:16px}
-.narrow{max-width:740px;margin:0 auto}
-.muted{color:var(--muted)} .small{font-size:13px}
-.btn{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;padding:0 18px;min-height:46px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.narrow{max-width:760px;margin:0 auto}
+.lwide{max-width:900px;margin:0 auto}
+.muted{color:var(--muted)} .small{font-size:13.5px}
+.btn{border:1px solid var(--rule2);background:var(--surface);color:var(--text);border-radius:10px;padding:0 18px;min-height:46px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  transition:background-color .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease),transform .1s var(--ease)}
+.btn:hover{border-color:#D2BCB4;background:#FDF8F6}
+.btn:active{transform:translateY(1px)}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn[disabled]{background:#B9B1AC;border-color:#B9B1AC;color:#fff;cursor:not-allowed}
+.btn.pri:hover{background:#B5190A;border-color:#B5190A}
+.btn[disabled],.btn[disabled]:hover{background:#F1E7E3;border-color:#F1E7E3;color:var(--muted);cursor:not-allowed;transform:none}
 .btn.lg{min-height:50px;font-size:16px;padding:0 24px}
+.btn .arw{transition:transform .2s var(--ease)}
+.btn:hover .arw{transform:translateX(3px)}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .end{justify-content:flex-end}
-.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.kicker{font-size:12.5px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-ul.notes{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--text2)}
+.kicker{font-size:13.5px;color:var(--muted);font-weight:500}
+ul.notes{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;color:var(--text2)}
 .audio{display:flex;flex-direction:column;gap:10px}
-.prog{height:8px;background:var(--line2);border-radius:999px;overflow:hidden}
-.prog i{display:block;height:8px;background:var(--accent);border-radius:999px;width:0}
+.audio .row{gap:10px}
+.prog{height:3px;background:var(--line);border-radius:3px;overflow:hidden}
+.prog i{display:block;height:3px;background:var(--text);border-radius:3px;width:0;transition:width .3s linear}
 .prog.ok i{background:var(--ok)}
-.review{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:9px 12px;font-weight:500}
-.alert{background:var(--accent-soft);color:var(--bad);border-radius:8px;padding:9px 12px;font-size:14px}
-/* đề thi */
-.paper{display:flex;flex-direction:column;gap:14px}
-.paper h2{font-size:19px}
-.paper h3.qh{font-size:16px;margin-top:6px}
+.eq{display:inline-flex;align-items:flex-end;gap:2px;height:12px;margin-right:4px}
+.eq i{width:2px;border-radius:1px;background:var(--text);animation:eq 1.1s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:-.4s}.eq i:nth-child(3){animation-delay:-.8s}
+.review{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 14px;font-weight:500}
+.alert{background:var(--accent-soft);color:var(--bad);border-radius:10px;padding:10px 14px;font-size:14px}
+/* tờ đề */
+.paper{display:flex;flex-direction:column;gap:16px}
+section.card.paper{padding:32px 40px 34px}
+.paper h2{font-size:21px;font-weight:700;padding-bottom:12px;border-bottom:2px solid var(--accent)}
+.paper h3.qh{font-size:16px;margin-top:8px}
 .paper p{margin:0}
 .paper p.instr{color:var(--text2)}
 .paper .b{font-weight:600}
 .paper .c{text-align:center}
-.paper .pk{color:var(--accent-ink);margin-right:4px}
+.paper .pk{color:var(--text);margin-right:4px}
 .li{display:flex;gap:10px;align-items:baseline;padding-left:4px}
-.li>b{min-width:22px;color:var(--accent-ink)}
-.box{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:#FFFDFB}
+.li>b{min-width:22px;color:var(--text)}
+.box{border:1px solid var(--rule2);border-radius:14px;padding:18px 22px;display:flex;flex-direction:column;gap:10px;background:#FFFDFC}
 .tw{overflow-x:auto}
 .tw table{border-collapse:collapse;min-width:100%}
-.tw td{border:1px solid var(--line);padding:8px 10px;vertical-align:top}
+.tw td{border:1px solid var(--rule2);padding:9px 11px;vertical-align:top}
 .tw td>*+*{margin-top:6px}
-img.fig{max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;display:block;cursor:zoom-in;background:#fff}
+img.fig{max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;display:block;cursor:zoom-in;background:#fff}
 img.fig.zoom{cursor:zoom-out;max-width:none;width:min(1400px,96vw)}
-.gap{display:inline-flex;align-items:center;gap:4px;vertical-align:baseline}
-.gap .n{font-weight:700;font-size:13px;color:var(--accent-ink)}
-.gap input{width:10em;max-width:60vw;border:1px solid #CFC8C3;border-radius:7px;padding:4px 8px;font-size:16px;background:#fff}
-.gap select,.qa select{border:1px solid #CFC8C3;border-radius:7px;padding:5px 8px;font-size:16px;background:#fff;min-width:76px;min-height:36px}
-.ql{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line2)}
-.ql .qn,.mc .qn{font-weight:700;color:var(--accent-ink);min-width:26px;white-space:nowrap;flex:0 0 auto}
+/* chỗ trống: dòng kẻ, chữ học sinh gõ màu đen */
+.gap{display:inline-flex;align-items:flex-end;gap:5px;vertical-align:baseline}
+.gap .n{font-weight:700;font-size:13px;color:var(--text)}
+.gap input{width:10em;max-width:60vw;height:32px;border:0;border-bottom:1.5px solid #B9B0AA;border-radius:0;padding:0 4px 1px;font-size:16px;font-weight:600;color:var(--text);background:transparent;
+  transition:background-color .15s var(--ease),border-color .2s var(--ease)}
+.gap input:hover{background:#FAF8F6}
+.gap input:focus{outline:none;background:#F7F3F1;border-bottom-color:var(--text)}
+.gap input:not(:placeholder-shown){border-bottom-color:var(--text)}
+.gap select,.qa select{border:1px solid #CFC8C3;border-radius:8px;padding:5px 8px;font-size:16px;background:#fff;min-width:76px;min-height:36px;color:var(--text);font-weight:600;transition:border-color .15s var(--ease)}
+.gap select:focus,.qa select:focus{outline:none;border-color:var(--text)}
+.ql{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line2)}
+.ql .qn,.mc .qn{font-weight:700;color:var(--text);min-width:26px;white-space:nowrap;flex:0 0 auto}
 .ql .qt{flex:1 1 260px;min-width:0}
 .ql .qa{flex:0 0 auto}
 .ql.rad .qa{flex:1 0 100%;padding-left:38px}
 .radios{display:flex;flex-wrap:wrap;gap:6px}
-.radios label{border:1px solid #CFC8C3;border-radius:8px;padding:6px 10px;display:inline-flex;gap:6px;align-items:center;font-size:13.5px;cursor:pointer;background:#fff;min-height:36px}
-.radios label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
-fieldset.mc{border:0;padding:8px 0;margin:0;border-top:1px solid var(--line2)}
-fieldset.mc legend{display:flex;gap:8px;font-weight:600;padding:0;margin-bottom:6px}
-.opt{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:8px;cursor:pointer;min-height:40px}
+.radios label{border:1px solid #CFC8C3;border-radius:8px;padding:6px 11px;display:inline-flex;gap:7px;align-items:center;font-size:13.5px;cursor:pointer;background:#fff;min-height:36px;transition:background-color .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease)}
+.radios label:hover{background:#FCF5F2}
+.radios label:has(input:checked){border-color:var(--accent);background:var(--accent-soft);font-weight:600}
+input[type=radio],input[type=checkbox]{accent-color:var(--accent)}
+fieldset.mc{border:0;padding:10px 0;margin:0;border-top:1px solid var(--line2)}
+fieldset.mc legend{display:flex;gap:10px;font-weight:500;padding:0;margin-bottom:6px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:8px 10px;border-radius:8px;cursor:pointer;min-height:42px;transition:background-color .15s var(--ease)}
+.opt:hover{background:#FCF5F2}
 .opt:has(input:checked){background:var(--accent-soft)}
+.opt:has(input:checked) span{font-weight:600}
 .opt input{margin-top:5px}
 .opt b{min-width:16px}
 .pick{margin:-2px 0 4px;padding-left:2px}
 .pick.warn{color:var(--warn);font-weight:600}
 /* chia hai khung: Reading (bài đọc | câu hỏi), Writing (đề bài | ô viết bài) */
-.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.split section.card.paper{padding:26px 30px 28px}
 .pane>*{flex-shrink:0}
-.editor{display:flex;flex-direction:column;gap:10px}
+.editor{display:flex;flex-direction:column;gap:12px}
 .flash{animation:flash 1.6s ease-out}
 @keyframes flash{0%,35%{background:var(--warn-soft);box-shadow:0 0 0 6px var(--warn-soft)}100%{background:transparent;box-shadow:0 0 0 6px transparent}}
 @media (min-width:901px){
   body.split-mode{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-  body.split-mode main.wrap{flex:1 1 auto;min-height:0;width:100%;max-width:1600px;padding-top:12px;padding-bottom:12px;display:flex;flex-direction:column}
+  body.split-mode main.wrap{flex:1 1 auto;min-height:0;width:100%;max-width:1600px;padding-top:14px;padding-bottom:14px;display:flex;flex-direction:column}
   body.split-mode header.top .wrap,body.split-mode .bar .wrap,body.split-mode .qnav .wrap{max-width:1600px}
   body.split-mode #sheet{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
   body.split-mode .part{flex:1 1 auto;min-height:0;grid-template-rows:minmax(0,1fr);align-items:stretch}
@@ -130,68 +162,150 @@ fieldset.mc legend{display:flex;gap:8px;font-weight:600;padding:0;margin-bottom:
 }
 /* tô màu chữ trong Reading */
 mark.hl{background:#FFE58A;color:inherit;border-radius:2px;padding:0;cursor:pointer;box-decoration-break:clone;-webkit-box-decoration-break:clone}
-#hlbtn{position:fixed;z-index:15;border:0;border-radius:9px;background:var(--text);color:#fff;font-weight:600;font-size:14px;min-height:38px;padding:0 14px;box-shadow:0 6px 18px rgba(28,26,25,.28);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+#hlbtn{position:fixed;z-index:15;border:0;border-radius:9px;background:var(--text);color:#fff;font-weight:600;font-size:14px;min-height:38px;padding:0 14px;box-shadow:0 8px 22px rgba(28,25,23,.3);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
 #hlbtn::before{content:"";width:14px;height:14px;border-radius:3px;background:#FFE58A;flex:none}
 #hlbtn.del::before{background:transparent;border:2px solid #FFE58A}
-/* thanh dưới: tab Part / Passage / Task, số câu, nút nộp */
-.qnav{position:sticky;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(40,20,15,.06)}
-.qnav-in{display:flex;align-items:center;gap:8px 14px;padding-top:8px;padding-bottom:8px}
-.tabs{display:flex;gap:6px;flex:0 0 auto}
-.tab{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:4px 12px;min-height:44px;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;cursor:pointer;line-height:1.25;white-space:nowrap;flex:0 0 auto}
-.tab b{font-size:13.5px}
-.tab .tc{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+/* thanh dưới: tab Part / Passage / Task (gạch đỏ dưới tab đang mở), số câu (đã làm: xanh lá), nút nộp */
+.qnav{position:sticky;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 18px rgba(40,20,15,.05)}
+.qnav-in{display:flex;align-items:center;gap:8px 16px;padding-top:8px;padding-bottom:8px}
+.tabs{display:flex;gap:2px;flex:0 0 auto}
+.tab{position:relative;border:0;background:transparent;border-radius:8px;padding:0 12px;min-height:44px;display:inline-flex;flex-direction:row;align-items:baseline;justify-content:center;gap:8px;cursor:pointer;line-height:44px;white-space:nowrap;flex:0 0 auto;color:var(--muted);transition:color .15s var(--ease),background-color .15s var(--ease)}
+.tab:hover{color:var(--text);background:#FCF7F5}
+.tab b{font-size:14px;font-weight:600;color:inherit}
+.tab .tc{font-size:12.5px;color:inherit;font-variant-numeric:tabular-nums}
 .tab .tc.okc{color:var(--green);font-weight:600} .tab .tc.low{color:var(--bad);font-weight:600}
-.tab.on{border-color:var(--accent);background:var(--accent-soft)}
-.tab.on b{color:var(--accent-ink)}
-.qnums{display:flex;flex-wrap:wrap;gap:5px;flex:1 1 auto;min-width:0}
-.qb{width:34px;height:34px;border-radius:8px;border:1px solid #CFC8C3;background:#fff;color:var(--text2);font-weight:600;font-size:13.5px;cursor:pointer;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:0}
+.tab.on{color:var(--text)}
+.tab.on::after{content:"";position:absolute;left:12px;right:12px;bottom:5px;height:2px;border-radius:2px;background:var(--accent);animation:pen .35s var(--ease) both}
+.qnums{display:flex;flex-wrap:wrap;gap:5px;flex:1 1 auto;min-width:0;padding-left:16px;border-left:1px solid var(--line)}
+.qb{width:34px;height:34px;border-radius:8px;border:1px solid var(--rule2);background:#fff;color:var(--text2);font-weight:600;font-size:13.5px;cursor:pointer;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:0;
+  transition:background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease)}
+.qb:hover{border-color:#D2BCB4;color:var(--text)}
 .qb.ans{background:var(--green);border-color:var(--green);color:#fff}
 .qb.cur{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
 .qnav .sub{margin-left:auto;min-height:44px;flex:0 0 auto}
-.seg{flex:1 0 100%;display:flex;background:var(--line2);border-radius:10px;padding:3px;gap:3px}
-.seg button{flex:1;border:0;background:transparent;border-radius:8px;min-height:38px;font-weight:600;cursor:pointer;color:var(--muted)}
-.seg button.on{background:var(--surface);color:var(--accent-ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.demo{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:12px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;background:#FFFDFB}
+.seg{flex:1 0 100%;display:flex;background:var(--line2);border-radius:10px;padding:3px;gap:3px;margin-bottom:4px}
+.seg button{flex:1;border:0;background:transparent;border-radius:8px;min-height:38px;font-weight:600;cursor:pointer;color:var(--muted);transition:background-color .15s var(--ease),color .15s var(--ease)}
+.seg button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(28,25,23,.12)}
+.demo{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:4px;padding:10px 12px;border:1px dashed var(--rule2);border-radius:12px;background:#FFFDFC}
 .demo .tab,.demo .qb{cursor:default}
-@media (max-width:900px){
-  .qnav-in{flex-wrap:wrap;gap:6px 8px;padding-top:6px;padding-bottom:6px}
-  .tabs{flex:1 1 0;min-width:0;overflow-x:auto;scrollbar-width:none}
-  .tab{padding:3px 9px;min-height:42px}
-  .tab b{font-size:13px}
-  .qnums{order:3;flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;padding:2px 2px 3px;scrollbar-width:thin}
-  .qnav .sub{min-height:42px;padding:0 14px}
+.demo .tab{min-height:36px;line-height:36px}
+.demo .tab.on::after{bottom:3px}
+/* màn chào */
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:44px 52px 40px;display:flex;flex-direction:column;gap:30px}
+.sheet h1{font-size:30px;font-weight:700;letter-spacing:-.015em}
+.lead{margin:0;color:var(--text2);font-size:16px;max-width:64ch}
+.parts{background:#FCF1EE;border-radius:14px;padding:6px 22px 4px}
+.parts table{width:100%;border-collapse:collapse}
+.parts caption{text-align:left;font-size:13.5px;font-weight:600;color:var(--accent-ink);padding:10px 0 4px}
+.parts td,.parts th{padding:12px 0;vertical-align:middle;text-align:left}
+.parts tr+tr{border-top:1px solid #F3D9D3}
+.parts th{font-weight:600;width:150px}
+.parts .no{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;background:var(--accent);color:#fff;font-size:13px;font-weight:700}
+.parts .c3{color:var(--text2)} .parts .c4{color:var(--text2);text-align:right}
+.parts .sub2{display:none;font-weight:400;font-size:13.5px;color:var(--text2)}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;border-top:1px solid var(--line);padding-top:28px}
+.cols h2{font-size:15px;font-weight:700;margin-bottom:12px}
+.cols ul.notes{font-size:14.5px}
+.go{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:24px}
+/* video hướng dẫn: ảnh bìa bấm để mở khung xem lớn; phụ đề do trang hiện (chữ to theo khung), toàn màn hình vẫn có phụ đề */
+.guide{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.vthumb{position:relative;flex:none;width:220px;aspect-ratio:16/9;border:0;border-radius:12px;padding:0;overflow:hidden;cursor:pointer;background:#FCF1EE}
+.vthumb img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .4s var(--ease)}
+.vthumb:hover img{transform:scale(1.03)}
+.vthumb .play{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:999px;background:var(--accent);box-shadow:0 6px 18px rgba(204,29,12,.35);display:flex;align-items:center;justify-content:center;transition:transform .2s var(--ease)}
+.vthumb:hover .play{transform:scale(1.06)}
+.vthumb .play::before{content:"";margin-left:3px;border-style:solid;border-width:8px 0 8px 13px;border-color:transparent transparent transparent #fff}
+.vthumb .len{position:absolute;right:8px;bottom:8px;background:rgba(28,25,23,.78);color:#fff;font-size:12px;font-weight:600;border-radius:6px;padding:1px 7px}
+.vtext{flex:1 1 240px;display:flex;flex-direction:column;gap:4px}
+.vbox{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(18,14,13,.86)}
+.vframe{width:min(1180px,100%,calc((100vh - 140px) * 16 / 9));width:min(1180px,100%,calc((100dvh - 140px) * 16 / 9));min-width:min(100%,320px);display:flex;flex-direction:column;gap:10px}
+.vhead{display:flex;align-items:center;gap:8px;color:#fff}
+.vhead b{flex:1;font-weight:600;font-size:15px}
+.vbtn{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 12px;border-radius:9px;border:1px solid rgba(255,255,255,.28);background:transparent;color:#fff;font-weight:600;font-size:13.5px;cursor:pointer;transition:background-color .15s var(--ease)}
+.vbtn:hover{background:rgba(255,255,255,.12)}
+.vbtn svg{width:16px;height:16px;flex:none}
+.vstage{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;container-type:inline-size}
+.vstage video{display:block;width:100%;height:100%;background:#000}
+.vstage:fullscreen{border-radius:0;aspect-ratio:auto;width:100vw;height:100vh}
+.vstage:-webkit-full-screen{border-radius:0;width:100vw;height:100vh}
+.vcap{position:absolute;left:50%;bottom:max(56px,11%);transform:translateX(-50%);width:max-content;max-width:88%;text-align:center;pointer-events:none;
+  font-size:max(15px,min(2.7cqw,28px));font-weight:600;line-height:1.45;color:#fff;transition:opacity .15s ease}
+.vcap span{background:rgba(20,16,15,.8);padding:.12em .5em;border-radius:6px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.vcap:empty{opacity:0}
+.vstage:fullscreen .vcap{bottom:max(80px,9%)}
+.vtip{color:rgba(255,255,255,.75);font-size:13px;text-align:center}
+@media (orientation:landscape) and (max-height:500px){.vbox{padding:6px}.vframe{width:min(100%,calc((100dvh - 64px) * 16 / 9))}.vtip{display:none}}
+/* điện thoại dựng đứng: video nhỏ, nên phụ đề nằm ngay dưới video thay vì che hình */
+@media (max-width:640px) and (orientation:portrait){
+  .vstage:not(:fullscreen){aspect-ratio:auto;overflow:visible;background:transparent;border-radius:0}
+  .vstage:not(:fullscreen) video{height:auto;aspect-ratio:16/9;border-radius:12px}
+  .vstage:not(:fullscreen) .vcap{position:static;transform:none;width:auto;max-width:none;min-height:4.4em;margin-top:12px;font-size:15.5px;line-height:1.5}
+  .vstage:not(:fullscreen) .vcap span{background:transparent;padding:0}
+  .vstage:not(:fullscreen) .vcap:empty{opacity:1}
+  .vhead b{font-size:14px}
 }
-@media (max-width:600px){
+@media (max-width:900px){
+  .qnav-in{flex-wrap:wrap;gap:4px 8px;padding-top:4px;padding-bottom:8px}
+  .tabs{flex:1 1 0;min-width:0;overflow-x:auto;scrollbar-width:none}
+  .tab{padding:0 10px;min-height:42px;line-height:42px}
+  .tab b{font-size:13.5px}
+  .qnums{order:3;flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;padding:2px 2px 3px;border-left:0;scrollbar-width:thin}
+  .qnav .sub{min-height:40px;padding:0 14px}
+}
+@media (max-width:640px){
   body{font-size:15px}
-  .card{padding:14px}
-  .brand img{height:32px}
-  .brand .t{padding-left:12px}
+  .wrap{padding:0 16px}
+  .card{padding:16px}
+  section.card.paper,.split section.card.paper{padding:22px 18px 24px}
+  main.wrap{padding-top:16px}
+  body.testing main.wrap{padding-left:0;padding-right:0;padding-top:0}
+  body.testing .card{border-radius:0;border-left:0;border-right:0}
+  .brand img{height:30px}
+  .brand .t{display:none}
   body.testing header.top{display:none}
-  .bar .wrap{padding-top:7px;padding-bottom:7px;gap:6px 10px}
-  .step{font-size:12px;padding:4px 9px}
-  .timer{font-size:13.5px;padding:4px 10px}
+  .bar .wrap{padding-top:2px;padding-bottom:2px;gap:0 12px}
+  .steps{gap:16px}
+  .step{font-size:13px;height:36px}
+  .status{gap:10px}
   .tw td{padding:6px 7px}
-  .gap input{width:7em}
+  .gap input{width:7.5em}
+  .sheet{border:0;border-radius:0;margin:0 -16px;padding:28px 18px 32px;gap:24px}
+  .sheet h1{font-size:24px}
+  .parts{padding:4px 14px 2px}
+  .parts .c3,.parts .c4{display:none}.parts .sub2{display:block}.parts th{width:auto}
+  .cols{grid-template-columns:minmax(0,1fr);gap:24px}
+  .vthumb{width:100%}
 }
 body.testing footer{display:none}
-textarea.essay{width:100%;min-height:320px;border:1px solid #CFC8C3;border-radius:10px;padding:12px 14px;font-size:16px;line-height:1.6;resize:vertical;background:#fff}
+textarea.essay{width:100%;min-height:320px;border:1px solid #CFC8C3;border-radius:12px;padding:14px 16px;font-size:16px;line-height:1.7;resize:vertical;background:#fff;color:var(--text);transition:border-color .15s var(--ease)}
+textarea.essay:focus{outline:none;border-color:#9A928D}
+textarea.essay::placeholder{color:#A39591}
 .count{font-weight:600}
 .count.low{color:var(--bad)} .count.okc{color:var(--ok)}
 /* popup */
 .scrim{position:fixed;inset:0;background:rgba(28,26,25,.45);z-index:20;display:flex;align-items:center;justify-content:center;padding:16px}
 .blur{filter:blur(4px);pointer-events:none;user-select:none}
 .hold{visibility:hidden}              /* chờ tắt tiện ích sửa ngữ pháp: không hiện đề Writing */
-.modal{background:var(--surface);border-radius:16px;box-shadow:0 18px 50px rgba(40,20,15,.22);padding:24px;width:100%;max-width:520px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 32px);overflow:auto}
-.modal h2{font-size:22px}
-.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.band{font-size:34px;font-weight:700;color:var(--accent-ink);line-height:1.1}
+.modal{background:var(--surface);border-radius:18px;box-shadow:0 30px 80px -30px rgba(28,25,23,.55);padding:28px 30px;width:100%;max-width:520px;display:flex;flex-direction:column;gap:18px;max-height:calc(100vh - 32px);overflow:auto}
+.modal h2{font-size:24px;font-weight:700;letter-spacing:-.01em}
+.modal .kicker{margin-top:4px}
+.modal p.muted{color:var(--text2)}
+.res{width:100%;border-collapse:collapse}
+.res th{padding:16px 0;text-align:left;font-weight:600;width:140px;vertical-align:top}
+.res td{padding:16px 0;color:var(--text2);vertical-align:top}
+.res tr{border-top:1px solid var(--line)}
+.res tr:first-child{border-top:2px solid var(--accent)}
+.res tr:last-child{border-bottom:1px solid var(--line)}
+.band{font-size:26px;font-weight:700;color:var(--accent);line-height:1.1;text-align:right;white-space:nowrap}
+.tick path{stroke-dasharray:60;stroke-dashoffset:60;animation:draw .55s var(--ease) .15s forwards}
 .field{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:13.5px}
-.field input{border:1px solid #CFC8C3;border-radius:10px;min-height:48px;padding:0 14px;font-size:18px;letter-spacing:.12em;text-transform:uppercase;background:#fff}
+.field input{border:1px solid #CFC8C3;border-radius:10px;min-height:48px;padding:0 14px;font-size:18px;letter-spacing:.12em;text-transform:uppercase;background:#fff;color:var(--text)}
 footer{color:var(--faint);font-size:12px;text-align:center;padding:0 16px 28px}
-.zalo{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;line-height:1.2;color:#0057D9;background:#EEF4FF;
-  border:1px solid #CFDDFB;border-radius:8px;padding:6px 11px;text-decoration:none;white-space:nowrap}
-.zalo:hover{background:#E1ECFF}
-.zalo svg{width:16px;height:16px;flex:none}
+/* nút Zalo giữ màu xanh Zalo, nhãn Short-test / Full-test giữ màu đỏ nhạt (Quản lý 18/11: "thêm màu như cũ… thấy vậy đẹp hơn") */
+.zalo{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;line-height:1.2;color:#0057D9;background:#EEF4FF;
+  border:1px solid #CFDDFB;border-radius:8px;padding:7px 12px;text-decoration:none;white-space:nowrap;transition:background-color .15s var(--ease),border-color .15s var(--ease)}
+.zalo:hover{background:#E1ECFF;border-color:#B9CEF7}
+.zalo svg{width:15px;height:15px;flex:none}
 .helpline{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:13.5px;color:var(--muted);padding-top:2px}
 body.testing .who .zalo{display:none}
 .zl-short{display:none}
@@ -199,8 +313,15 @@ body.testing .who .zalo{display:none}
   .bar .zalo{padding:4px 9px}
   .bar .zalo .zl-full{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}   /* máy đọc màn hình vẫn đọc "Zalo trợ giúp" */
   .bar .zalo .zl-short{display:inline}
-  .bar .status{gap:10px}
+  .modal{padding:22px 20px}
 }
+@keyframes pen{from{transform:scaleX(0);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes eq{0%,100%{height:3px}50%{height:12px}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -228,6 +349,7 @@ const FN = C.fn || (String(C.url || '').replace(/\/$/, '') + '/functions/v1/plac
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const SK = { L:'Listening', R:'Reading', W:'Writing' };
+const CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 // tắt Grammarly, LanguageTool, gợi ý chính tả của trình duyệt trong ô làm bài
 const NOASSIST = 'data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" data-ms-editor="false"';
 // tiện ích sửa ngữ pháp (Quản lý chốt 29/10): auto = nghe lệnh tắt của trang (chỉ ghi lại cho giáo viên); còn lại phải tắt mới làm
@@ -320,7 +442,7 @@ function control(n){
   if (q.type === 'choice'){
     return `<select data-q="${n}" aria-label="Câu ${n}"><option value=""></option>${(q.choices || []).map(c => `<option ${val === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`;
   }
-  return `<input type="text" data-q="${n}" value="${esc(val)}" aria-label="Câu ${n}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${NOASSIST} maxlength="80">`;
+  return `<input type="text" data-q="${n}" value="${esc(val)}" aria-label="Câu ${n}" placeholder=" " autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${NOASSIST} maxlength="80">`;
 }
 const segs = c => (c || []).map(s => typeof s === 'string' ? esc(s) : `<span class="gap"><span class="n">${s.q}</span>${control(s.q)}</span>`).join('');
 function blocks(bs){
@@ -406,7 +528,7 @@ function renderBar(){
   b.hidden = false;
   const i = ['L', 'R', 'W'].indexOf(v.sec);
   const seg = v.sec === 'R' ? `<div class="seg sm-only" role="tablist" aria-label="Xem bài đọc hoặc câu hỏi">${[['p', 'Bài đọc'], ['q', 'Câu hỏi']].map(([k, l]) => `<button type="button" role="tab" aria-selected="${S.rTab === k}" class="${S.rTab === k ? 'on' : ''}" data-a="rtab" data-v="${k}">${l}</button>`).join('')}</div>` : '';
-  b.innerHTML = `<div class="wrap"><div class="steps">${['L', 'R', 'W'].map((k, j) => `<span class="step ${j === i ? 'on' : j < i ? 'done' : ''}">${j < i ? '✓ ' : ''}${j + 1}. ${SK[k]}</span>`).join('')}</div>
+  b.innerHTML = `<div class="wrap"><nav class="steps" aria-label="Các phần của bài">${['L', 'R', 'W'].map((k, j) => `<span class="step ${j === i ? 'on' : j < i ? 'done' : ''}"${j === i ? ' aria-current="step"' : ''}>${j < i ? CHECK : ''}${SK[k]}</span>`).join('')}</nav>
     <div class="status"><span class="saved ${S.saveState === 'ok' ? '' : 'warn'}" id="saved">${saveLabel()}</span><span class="timer" id="timer">${timerText()}</span>${zaloLink()}</div>${seg}</div>`;
 }
 // thanh dưới cùng: tab từng Part / Passage / Task, số câu của tab đang mở (câu đã trả lời: xanh lá), nút nộp
@@ -440,7 +562,7 @@ function timerText(){
   if (v.sec === 'L' && S.phase !== 'review') return '';
   if (!v.deadline) return '';
   if (v.sec === 'W' && S.ext.on) return 'Tạm dừng';
-  return '⏱ ' + fmt((v.deadline - now()) / 1000);
+  return fmt((v.deadline - now()) / 1000);
 }
 function render(){
   if (S.blocked){ showBlocked(); return; }
@@ -467,7 +589,7 @@ function render(){
   $('#sheet').classList.toggle('hold', assistHold());
   renderNav();
   $('#nav').classList.toggle('hold', assistHold());
-  $('#modal').innerHTML = S.modal || assistHold() ? viewModal() : '';
+  setModal(S.modal || assistHold() ? viewModal() : '');
   if (S.modal || assistHold()) hideHl();
 }
 // chuyển Part / Passage / Task: không vẽ lại, chỉ ẩn hiện; nhớ chỗ đang cuộn của từng tab
@@ -508,43 +630,96 @@ function goQ(n){
 function viewWelcome(){
   const d = S.v.durations || {};
   const short = S.v.kind !== 'full';
-  return `<div class="narrow stack">
-    <div><h1 style="font-size:27px;margin-bottom:6px">Chào mừng bạn đến với <span style="white-space:nowrap">bài kiểm tra đầu vào</span> của Giáo Làng!</h1>
-    <p class="muted" style="margin:0">Bài kiểm tra này giúp trung tâm biết trình độ hiện tại của bạn để xếp lớp cho phù hợp, nên bạn cứ thoải mái làm theo khả năng của mình nhé. Bài gồm 3 phần, bạn làm lần lượt theo thứ tự bên dưới. Trước mỗi phần sẽ có một màn giới thiệu ngắn, và khi đã sẵn sàng thì bạn bấm "Bắt đầu làm bài".</p></div>
-    <div class="card guide"><b>Lần đầu làm bài trực tuyến? Bạn xem video hướng dẫn ngắn (khoảng 4 phút) này trước nhé.</b>
-      <div class="small muted">Video dùng đề mẫu, không phải đề bạn sắp làm. Đồng hồ chưa chạy, nên bạn cứ xem thong thả.</div>
-      <video controls preload="none" playsinline poster="huong-dan.jpg" aria-label="Video hướng dẫn làm bài"><source src="huong-dan.mp4" type="video/mp4"><source src="huong-dan.webm" type="video/webm">Trình duyệt không phát được video.</video></div>
-    <div class="grid3">
-      <div class="card"><div class="kicker">Phần 1</div><b style="font-size:17px">Listening</b><div class="small muted">${S.v.counts.L} câu · nghe hết bài, thêm 3 phút soát lại</div></div>
-      <div class="card"><div class="kicker">Phần 2</div><b style="font-size:17px">Reading</b><div class="small muted">${S.v.counts.R} câu · ${Math.round(d.R / 60)} phút</div></div>
-      <div class="card"><div class="kicker">Phần 3</div><b style="font-size:17px">Writing</b><div class="small muted">${S.v.counts.W > 1 ? 'Task 1 + Task 2' : '1 đề Task 2'} · ${Math.round(d.W / 60)} phút</div></div>
+  const P = [['Listening', `${S.v.counts.L} câu`, 'Nghe hết bài, thêm 3 phút soát lại'], ['Reading', `${S.v.counts.R} câu`, `${Math.round(d.R / 60)} phút`],
+    ['Writing', S.v.counts.W > 1 ? 'Task 1 + Task 2' : '1 đề Task 2', `${Math.round(d.W / 60)} phút`]];
+  return `<article class="sheet narrow">
+    <div style="display:flex;flex-direction:column;gap:12px"><h1>Chào mừng bạn đến với <span style="white-space:nowrap">bài kiểm tra đầu vào</span> của Giáo Làng!</h1>
+    <p class="lead">Bài kiểm tra này giúp trung tâm biết trình độ hiện tại của bạn để xếp lớp cho phù hợp, nên bạn cứ thoải mái làm theo khả năng của mình nhé. Trước mỗi phần sẽ có một màn giới thiệu ngắn, và khi đã sẵn sàng thì bạn bấm "Bắt đầu làm bài".</p></div>
+    <div class="parts"><table><caption>Bài gồm 3 phần, bạn làm lần lượt theo thứ tự này</caption><tbody>${P.map(([n, a, b], i) => `<tr><td style="width:42px"><span class="no">${i + 1}</span></td><th scope="row">${n}<span class="sub2">${a} · ${b[0].toLowerCase() + b.slice(1)}</span></th><td class="c3">${a}</td><td class="c4">${b}</td></tr>`).join('')}</tbody></table></div>
+    ${viewGuide()}
+    <div class="cols">
+      <section><h2>Cách làm bài trên trang này</h2><ul class="notes">
+        <li>Mỗi phần được chia thành các tab <b>Part 1, Part 2…</b> (phần Reading là <b>Passage 1, Passage 2…</b>) ở thanh dưới cùng. Bạn bấm vào tab để chuyển qua lại.</li>
+        <li>Câu nào bạn đã trả lời thì số câu sẽ chuyển sang <b style="color:var(--green)">màu xanh lá</b>. Bạn bấm vào số câu để nhảy nhanh tới câu đó.</li>
+        <li>Ở phần Reading, bài đọc và câu hỏi nằm ở hai khung riêng, và mỗi khung cuộn riêng. Trên điện thoại, bạn bấm "Bài đọc" hoặc "Câu hỏi" ở phía trên để chuyển qua lại.</li>
+        <li>Khi muốn đánh dấu chữ trong đề, bạn bôi đen chữ (kéo chuột qua chữ; trên điện thoại thì giữ ngón tay lên chữ) rồi bấm "Tô màu". Muốn bỏ, bạn bấm vào chỗ đã tô rồi chọn "Bỏ tô".</li>
+        <li>Ở phần Writing, đề bài nằm một bên và ô viết bài nằm bên còn lại.${short ? '' : ' Bạn bấm tab <b>Task 1</b>, <b>Task 2</b> ở thanh dưới cùng để chuyển giữa hai bài.'}</li>
+      </ul>
+      <div class="demo" aria-hidden="true"><span class="tab on"><b>Part 1</b><span class="tc">2/3</span></span><span class="qb ans">1</span><span class="qb ans">2</span><span class="qb">3</span><span class="small muted">Ví dụ: câu 1 và 2 đã làm, câu 3 chưa làm.</span></div>
+      <p class="small" style="margin:10px 0 0">Ví dụ chữ đã tô: The <mark class="hl">first public library</mark> opened in 1850.</p></section>
+      <section><h2>Trước khi bắt đầu</h2><ul class="notes">
+        <li>Bài làm của bạn được tự lưu liên tục. Nếu lỡ mất mạng hay tắt trình duyệt, bạn cũng đừng lo, chỉ cần mở lại link là làm tiếp được.</li>
+        <li>Mỗi link chỉ dùng cho một lượt làm bài. Đồng hồ vẫn chạy cả khi bạn rời trang, nên bạn cố gắng làm liền một mạch nhé.</li>
+        <li>Hệ thống có ghi lại số lần bạn rời khỏi trang làm bài, vì vậy bạn nên hạn chế chuyển sang ứng dụng hay trang khác trong lúc làm nhé.</li>
+        <li>Bạn làm trên máy tính hay điện thoại đều được. Với phần Listening, bạn nên đeo tai nghe để nghe rõ hơn.</li>
+        <li>Grammarly và các tiện ích sửa lỗi chính tả sẽ không hoạt động trong ô làm bài, vì trung tâm cần biết đúng trình độ của bạn.</li>${ZALO ? `
+        <li>Nếu gặp khó khăn ở bất cứ bước nào, bạn bấm nút "Zalo trợ giúp" ở đầu trang để nhắn trung tâm nhé.</li>` : ''}
+      </ul></section>
     </div>
-    <div class="card"><b>Cách làm bài trên trang này</b><ul class="notes">
-      <li>Mỗi phần được chia thành các tab <b>Part 1, Part 2…</b> (phần Reading là <b>Passage 1, Passage 2…</b>) ở thanh dưới cùng. Bạn bấm vào tab để chuyển qua lại.</li>
-      <li>Câu nào bạn đã trả lời thì số câu sẽ chuyển sang <b style="color:var(--green)">màu xanh lá</b>. Bạn bấm vào số câu để nhảy nhanh tới câu đó.</li>
-      <li>Ở phần Reading, bài đọc và câu hỏi nằm ở hai khung riêng, và mỗi khung cuộn riêng. Trên điện thoại, bạn bấm "Bài đọc" hoặc "Câu hỏi" ở phía trên để chuyển qua lại.</li>
-      <li>Khi muốn đánh dấu chữ trong đề, bạn bôi đen chữ (kéo chuột qua chữ; trên điện thoại thì giữ ngón tay lên chữ) rồi bấm "Tô màu". Muốn bỏ, bạn bấm vào chỗ đã tô rồi chọn "Bỏ tô".</li>
-      <li>Ở phần Writing, đề bài nằm một bên và ô viết bài nằm bên còn lại.${short ? '' : ' Bạn bấm tab <b>Task 1</b>, <b>Task 2</b> ở thanh dưới cùng để chuyển giữa hai bài.'}</li>
-    </ul>
-    <div class="demo" aria-hidden="true"><span class="tab on"><b>Part 1</b><span class="tc">2/3</span></span><span class="qb ans">1</span><span class="qb ans">2</span><span class="qb">3</span><span class="small muted">Ví dụ: câu 1 và 2 đã làm, câu 3 chưa làm.</span></div>
-    <p class="small" style="margin:10px 0 0">Ví dụ chữ đã tô: The <mark class="hl">first public library</mark> opened in 1850.</p></div>
-    <div class="card"><b>Trước khi bắt đầu</b><ul class="notes">
-      <li>Bài làm của bạn được tự lưu liên tục. Nếu lỡ mất mạng hay tắt trình duyệt, bạn cũng đừng lo, chỉ cần mở lại link là làm tiếp được.</li>
-      <li>Mỗi link chỉ dùng cho một lượt làm bài. Đồng hồ vẫn chạy cả khi bạn rời trang, nên bạn cố gắng làm liền một mạch nhé.</li>
-      <li>Hệ thống có ghi lại số lần bạn rời khỏi trang làm bài, vì vậy bạn nên hạn chế chuyển sang ứng dụng hay trang khác trong lúc làm nhé.</li>
-      <li>Bạn làm trên máy tính hay điện thoại đều được. Với phần Listening, bạn nên đeo tai nghe để nghe rõ hơn.</li>
-      <li>Grammarly và các tiện ích sửa lỗi chính tả sẽ không hoạt động trong ô làm bài, vì trung tâm cần biết đúng trình độ của bạn.</li>${ZALO ? `
-      <li>Nếu gặp khó khăn ở bất cứ bước nào, bạn bấm nút "Zalo trợ giúp" ở đầu trang để nhắn trung tâm nhé.</li>` : ''}
-    </ul></div>
-    <div class="stack" style="gap:8px"><p style="margin:0">Khi đã sẵn sàng, bạn bấm nút bên dưới để vào phần đầu tiên. Chúc bạn làm bài thật tốt!</p>
-    <div><button type="button" class="btn pri lg" data-a="enter">Vào phần Listening</button></div></div>
+    <div class="go"><span>Khi đã sẵn sàng, bạn bấm nút bên cạnh để vào phần đầu tiên. Chúc bạn làm bài thật tốt!</span>
+      <button type="button" class="btn pri lg" data-a="enter">Vào phần Listening<svg class="arw" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+  </article>`;
+}
+// video hướng dẫn (17/10; khung xem lớn + phụ đề do trang hiện 18/11): chưa bấm xem thì không tải video, không tải phụ đề
+const VLEN = '3:40';
+function viewGuide(){
+  return `<div class="guide">
+    <button type="button" class="vthumb" data-a="vopen" aria-label="Xem video hướng dẫn làm bài"><img src="huong-dan.jpg" alt="" width="960" height="540"><span class="play" aria-hidden="true"></span><span class="len" aria-hidden="true">${VLEN}</span></button>
+    <div class="vtext"><b>Lần đầu làm bài trực tuyến? Bạn xem video hướng dẫn ngắn (khoảng 4 phút) này trước nhé.</b><span class="small muted">Video dùng đề mẫu, không phải đề bạn sắp làm. Đồng hồ chưa chạy, nên bạn cứ xem thong thả.</span></div>
+    <div class="vbox" id="vbox" hidden role="dialog" aria-modal="true" aria-label="Video hướng dẫn làm bài"><div class="vframe">
+      <div class="vhead"><b>Video hướng dẫn làm bài</b>
+        <button type="button" class="vbtn" data-a="vfull"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Toàn màn hình</button>
+        <button type="button" class="vbtn" data-a="vclose" aria-label="Đóng video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg><span class="lg-only">Đóng</span></button></div>
+      <div class="vstage" id="vstage"><video id="vid" controls preload="none" playsinline poster="huong-dan.jpg" controlslist="nofullscreen nodownload" disablepictureinpicture aria-label="Video hướng dẫn làm bài"><source src="huong-dan.mp4" type="video/mp4"><source src="huong-dan.webm" type="video/webm"><track kind="subtitles" srclang="vi" label="Tiếng Việt" src="huong-dan.vtt">Trình duyệt không phát được video.</video><div class="vcap" id="vcap"></div></div>
+      <div class="vtip sm-only">Bạn xoay ngang điện thoại để xem video to hơn.</div>
+    </div></div>
   </div>`;
 }
+// phụ đề: trang tự vẽ (chữ to theo khung, có cả khi bấm "Toàn màn hình" của trang). Riêng khi trình duyệt phóng to chính video
+// (iPhone, hoặc nút toàn màn hình của Safari) thì để trình duyệt tự hiện phụ đề.
+function vTrack(){ const v = $('#vid'); return v && v.textTracks && v.textTracks[0]; }
+function vCap(){
+  const t = vTrack(), c = $('#vcap'); if (!t || !c) return;
+  const cue = t.activeCues && t.activeCues[0];
+  c.innerHTML = cue ? String(cue.text).split('\n').map(l => `<span>${esc(l)}</span>`).join('<br>') : '';
+}
+function vNative(on){ const t = vTrack(); if (t) t.mode = on ? 'showing' : 'hidden'; if (on){ const c = $('#vcap'); if (c) c.innerHTML = ''; } else vCap(); }
+const vFsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+function vFsChange(){ const v = $('#vid'); if (!v) return; vNative(vFsEl() === v); }
+document.addEventListener('fullscreenchange', vFsChange); document.addEventListener('webkitfullscreenchange', vFsChange);
+function vOpen(){
+  const box = $('#vbox'), v = $('#vid'); if (!box || !v) return;
+  box.hidden = false; document.body.style.overflow = 'hidden';
+  if (!v._gl){
+    v._gl = 1;
+    const t = vTrack(); if (t){ t.mode = 'hidden'; t.addEventListener('cuechange', vCap); }
+    v.addEventListener('webkitbeginfullscreen', () => vNative(true)); v.addEventListener('webkitendfullscreen', () => vNative(false));
+  }
+  const p = v.play(); if (p && p.catch) p.catch(() => {});
+  setTimeout(() => { const b = box.querySelector('[data-a="vclose"]'); if (b) try { b.focus({ preventScroll:true }); } catch (e) {} }, 50);
+}
+function vClose(){
+  const box = $('#vbox'), v = $('#vid');
+  if (vFsEl()) try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
+  if (v) try { v.pause(); } catch (e) {}
+  if (box) box.hidden = true;
+  document.body.style.overflow = '';
+}
+function vFull(){
+  const st = $('#vstage'), v = $('#vid'); if (!st || !v) return;
+  if (vFsEl()){ try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} return; }
+  const req = st.requestFullscreen || st.webkitRequestFullscreen;
+  if (req){
+    Promise.resolve(req.call(st)).then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} }).catch(() => { if (v.webkitEnterFullscreen) v.webkitEnterFullscreen(); });
+  } else if (v.webkitEnterFullscreen){ vNative(true); v.webkitEnterFullscreen(); }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !vFsEl()){ const b = $('#vbox'); if (b && !b.hidden) vClose(); } });
+document.addEventListener('click', e => { const b = $('#vbox'); if (b && !b.hidden && e.target === b) vClose(); });
 function audioTop(){
   const v = S.v, dur = v.durations.audio;
   if (!v.started) return `<div class="card audio"><b>File nghe</b><div class="small muted">File nghe sẽ tự phát ngay khi bạn bấm "Bắt đầu làm bài" và chỉ phát một lần.</div></div>`;
   if (S.phase === 'review') return `<div class="card audio"><b>Đã hết file nghe</b><div class="prog"><i style="width:100%"></i></div><div class="review">Bạn còn <span id="rv">${fmt((v.deadline - now()) / 1000)}</span> để xem lại đáp án. Khi hết giờ, phần này sẽ được tự động nộp.</div></div>`;
-  return `<div class="card audio"><div class="row" style="justify-content:space-between"><b>Đang phát file nghe</b><span class="small muted" id="apos">${fmt(curPos())} / ${fmt(dur)}</span></div><div class="prog"><i id="abar" style="width:${Math.min(100, curPos() / dur * 100)}%"></i></div><div class="small muted">File nghe phát liền một mạch và không tua hay dừng được, nên bạn tập trung nghe nhé.</div></div>`;
+  return `<div class="card audio"><div class="row" style="justify-content:space-between"><b><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>Đang phát file nghe</b><span class="small muted" id="apos">${fmt(curPos())} / ${fmt(dur)}</span></div><div class="prog"><i id="abar" style="width:${Math.min(100, curPos() / dur * 100)}%"></i></div><div class="small muted">File nghe phát liền một mạch và không tua hay dừng được, nên bạn tập trung nghe nhé.</div></div>`;
 }
 // cuối mỗi tab: nút sang tab sau; tab cuối: nút nộp
 function endBtn(i){
@@ -556,7 +731,7 @@ function endBtn(i){
 function viewSection(){
   const v = S.v, ps = units(), hid = i => i === S.part ? '' : 'hidden';
   if (v.sec === 'L'){
-    return `<div class="stack"><div id="atop">${audioTop()}</div>${ps.map((p, i) => `<section class="card paper part" data-p="${i}" data-hl="L${i}" ${hid(i)}>${p.title ? `<h2>${esc(p.title)}</h2>` : ''}${blocks(p.blocks)}<div class="row end">${endBtn(i)}</div></section>`).join('')}</div>`;
+    return `<div class="stack lwide"><div id="atop">${audioTop()}</div>${ps.map((p, i) => `<section class="card paper part" data-p="${i}" data-hl="L${i}" ${hid(i)}>${p.title ? `<h2>${esc(p.title)}</h2>` : ''}${blocks(p.blocks)}<div class="row end">${endBtn(i)}</div></section>`).join('')}</div>`;
   }
   if (v.sec === 'R'){
     return ps.map((p, i) => `<div class="part split" data-p="${i}" ${hid(i)}>`
@@ -664,7 +839,7 @@ window.addEventListener('resize', hideHl);
 const assistHold = () => !!(S.v && S.v.sec === 'W' && S.ext.block.length && !(S.v.started && S.ext.noPause));
 function viewAssist(){
   const names = S.ext.block.join(', '), started = S.v && S.v.started;
-  return `<div class="scrim"><div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="mt"><div><div class="kicker" style="color:var(--accent-ink)">Phần 3 / 3 · Writing</div><h2 id="mt">Bạn cần tắt tiện ích sửa ngữ pháp trước khi làm Writing</h2></div>
+  return `<div class="scrim"><div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="mt"><div><h2 id="mt">Bạn cần tắt tiện ích sửa ngữ pháp trước khi làm Writing</h2><div class="kicker">Phần 3 / 3 · Writing</div></div>
     <ul class="notes" style="margin:0"><li>Trình duyệt của bạn đang bật: <b>${esc(names)}</b>.</li>
       <li>Tiện ích này tự sửa câu chữ nên bạn không được dùng khi làm Writing, mà trang làm bài lại chưa tự tắt được nó.</li>
       <li>Để tắt, bạn bấm biểu tượng mảnh ghép (Tiện ích) cạnh thanh địa chỉ rồi tắt tiện ích trên. Bạn cũng có thể mở link bằng một trình duyệt khác không cài tiện ích này.</li>
@@ -678,7 +853,7 @@ function viewModal(){
     const lines = m.lines.map(l => `<li>${esc(l)}</li>`).join('');
     const load = v.sec === 'L' ? `<div style="display:flex;flex-direction:column;gap:6px"><div class="row small muted" style="justify-content:space-between"><span>${S.audioErr ? esc(S.audioErr) : S.audioPct >= 100 ? 'Đã tải xong file nghe' : 'Đang tải file nghe…'}</span><span>${S.audioPct}%</span></div><div class="prog ok"><i style="width:${S.audioPct}%"></i></div></div>` : '';
     const ready = v.sec !== 'L' || S.audioPct >= 100;
-    return `<div class="scrim"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><div><div class="kicker" style="color:var(--accent-ink)">${esc(m.kicker)}</div><h2 id="mt">${esc(m.title)}</h2></div><ul class="notes" style="margin:0">${lines}</ul>${load}
+    return `<div class="scrim"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><div><h2 id="mt">${esc(m.title)}</h2><div class="kicker">${esc(m.kicker)}</div></div><ul class="notes" style="margin:0">${lines}</ul>${load}
       ${S.audioErr ? `<button type="button" class="btn" data-a="reload-audio">Tải lại file nghe</button>` : ''}
       <button type="button" class="btn pri lg" data-a="begin" ${ready && !S.busy ? '' : 'disabled'}>${esc(m.button || 'Bắt đầu làm bài')}</button></div></div>`;
   }
@@ -694,16 +869,15 @@ function viewModal(){
 }
 function viewResult(){
   const r = (S.v && S.v.result) || {}, skip = (S.v && S.v.abandoned) || [];
-  const card = (k, x) => skip.includes(k)
-    ? `<div class="card" style="display:flex;flex-direction:column;gap:8px"><b style="font-size:16px">${SK[k]}</b><p class="small" style="margin:0;color:var(--text2)">Bạn chưa làm phần này.</p></div>`
-    : `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between"><b style="font-size:16px">${SK[k]}</b><span class="muted small">${x.correct == null ? '' : `${x.correct}/${x.total} câu đúng`}</span></div><div class="band">${x.band == null ? '–' : Number(x.band).toFixed(1)}</div>${x.comment ? `<p class="small" style="margin:0;color:var(--text2)">${esc(x.comment)}</p>` : ''}</div>`;
+  const row = (k, x) => skip.includes(k)
+    ? `<tr><th scope="row">${SK[k]}</th><td colspan="2">Bạn chưa làm phần này.</td></tr>`
+    : `<tr><th scope="row">${SK[k]}</th><td>${x.correct == null ? '' : `${x.correct}/${x.total} câu đúng`}${x.comment ? `<div class="small" style="margin-top:6px">${esc(x.comment)}</div>` : ''}</td><td class="band">${x.band == null ? '–' : Number(x.band).toFixed(1)}</td></tr>`;
   // bài bỏ dở: máy chủ tự nộp khi quá 24 giờ không làm tiếp (Quản lý chốt 19/10)
   const head = skip.length
-    ? `<div class="card stack"><h1 style="font-size:21px">Bài kiểm tra của bạn đã được tự động nộp</h1><p style="margin:0">Vì đã quá 24 giờ kể từ lần cuối bạn làm bài, hệ thống đã tự động nộp bài giúp bạn. Những phần bạn chưa làm (${skip.map(k => SK[k]).join(', ')}) được tính là để trống.</p><p style="margin:0">Nếu muốn làm lại, bạn cứ nhắn trung tâm qua Zalo nhé.</p></div>`
-    : `<div class="row" style="gap:14px;flex-wrap:nowrap"><span class="pill p-ok" style="width:46px;height:46px;justify-content:center;font-size:22px;padding:0">✓</span><div><h1 style="font-size:24px">Bạn đã nộp bài thành công</h1><div class="muted">Cảm ơn bạn đã dành thời gian làm bài kiểm tra!</div></div></div>`;
-  return `<div class="narrow stack">${head}
-    <div class="res">${card('L', r.L || {})}${card('R', r.R || {})}</div>
-    <div class="card"><b>Writing</b><p class="small" style="margin:4px 0 0;color:var(--text2)">${skip.includes('W') ? 'Bạn chưa làm phần này.' : 'Giáo viên sẽ chấm bài viết của bạn. Sau đó, trung tâm sẽ liên hệ với bạn để báo kết quả đầy đủ và tư vấn lớp học phù hợp.'}</p></div></div>`;
+    ? `<div class="stack" style="gap:10px"><h1 style="font-size:24px">Bài kiểm tra của bạn đã được tự động nộp</h1><p style="margin:0">Vì đã quá 24 giờ kể từ lần cuối bạn làm bài, hệ thống đã tự động nộp bài giúp bạn. Những phần bạn chưa làm (${skip.map(k => SK[k]).join(', ')}) được tính là để trống.</p><p style="margin:0">Nếu muốn làm lại, bạn cứ nhắn trung tâm qua Zalo nhé.</p></div>`
+    : `<div style="display:flex;align-items:flex-start;gap:18px"><svg class="tick" width="54" height="54" viewBox="0 0 54 54" fill="none" aria-hidden="true" style="flex:none"><path d="M10 29.5c4.2 3.4 8 7.6 11.2 12.5C27.5 28 36.5 17.2 46 9.5" stroke="#CC1D0C" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg><div style="display:flex;flex-direction:column;gap:6px"><h1 style="font-size:28px;letter-spacing:-.01em">Bạn đã nộp bài thành công</h1><span class="muted">Cảm ơn bạn đã dành thời gian làm bài kiểm tra!</span></div></div>`;
+  return `<article class="sheet narrow">${head}
+    <table class="res"><tbody>${row('L', r.L || {})}${row('R', r.R || {})}<tr><th scope="row">Writing</th><td colspan="2">${skip.includes('W') ? 'Bạn chưa làm phần này.' : 'Giáo viên sẽ chấm bài viết của bạn. Sau đó, trung tâm sẽ liên hệ với bạn để báo kết quả đầy đủ và tư vấn lớp học phù hợp.'}</td></tr></tbody></table></article>`;
 }
 function showError(msg, withCode){
   $('#bar').hidden = true; $('#nav').hidden = true; S.key = null; hideHl();
@@ -752,7 +926,13 @@ async function loadAudio(){
   S.audioLoading = false;
   refreshModal();
 }
-function refreshModal(){ if (S.modal && S.modal.type === 'intro') $('#modal').innerHTML = viewModal(); }
+function refreshModal(){ if (S.modal && S.modal.type === 'intro') setModal(viewModal()); }
+// popup chỉ hiện dần lần đầu; vẽ lại (thanh tải file nghe, đổi nút…) thì giữ yên, không nháy
+function setModal(html){
+  const box = $('#modal'), had = !!box.querySelector('.scrim');
+  box.innerHTML = html;
+  if (had) box.querySelectorAll('.scrim,.modal').forEach(e => { e.style.animation = 'none'; });
+}
 // vị trí file nghe theo giờ máy chủ (đồng hồ vẫn chạy khi học sinh rời trang)
 function expectedPos(){ const v = S.v; return v && v.anchor ? Math.min(v.durations.audio, v.anchor.pos + Math.max(0, now() - v.anchor.t) / 1000) : 0; }
 function curPos(){ return S.phase === 'play' && !aud.paused ? aud.currentTime : expectedPos(); }
@@ -930,7 +1110,8 @@ document.addEventListener('focusin', e => { const t = e.target; if (t.dataset &&
 /* ---------------------------------------------------------------- nút bấm */
 const ACT = {
   'busy-retry': () => { S.blocked = false; S.v = null; $('#main').innerHTML = '<div class="narrow"><div class="card">Đang mở lại bài kiểm tra…</div></div>'; start(); },
-  enter: () => { document.querySelectorAll('video').forEach(x => { try { x.pause(); } catch (e) {} }); S.welcome = false; S.modal = Object.assign({ type:'intro' }, introFor('L')); render(); loadAudio(); },
+  vopen: () => vOpen(), vclose: () => vClose(), vfull: () => vFull(),
+  enter: () => { vClose(); document.querySelectorAll('video').forEach(x => { try { x.pause(); } catch (e) {} }); S.welcome = false; S.modal = Object.assign({ type:'intro' }, introFor('L')); render(); loadAudio(); },
   'reload-audio': () => { S.audioUrl = null; loadAudio(); },
   begin: async () => {
     if (S.busy || assistHold()) return; S.busy = true; refreshModal();
