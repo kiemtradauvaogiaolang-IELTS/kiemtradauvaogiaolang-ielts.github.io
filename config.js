@@ -3,4 +3,7 @@
 window.GL_CONFIG = {
   url: 'https://nzikvtcezlokaxizhcoa.supabase.co',
   key: 'sb_publishable_ZskHt3Fukr7649h2mPf9XA_l2bmDN1J',
+  // Zalo trợ giúp của trung tâm (Quản lý gửi 18/11): nút "Zalo trợ giúp" ở màn hình làm bài, dưới ô nhập mã 8 ký tự, ở các màn báo lỗi.
+  // Đổi số Zalo thì chỉ sửa dòng này (phải là link https://zalo.me/…); để trống thì không hiện nút.
+  zalo: 'https://zalo.me/258012965055766703',
 };
