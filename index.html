@@ -214,7 +214,7 @@ body.testing .who .zalo{display:none}
 <div id="modal"></div>
 <button type="button" id="hlbtn" data-a="hl" hidden>Tô màu</button>
 <audio id="aud" preload="auto"></audio>
-<footer>Thông tin và bài làm của bạn chỉ dùng để xếp lớp và theo dõi việc học tại Giáo Làng. Dữ liệu trên trang làm bài tự xoá sau 60 ngày.</footer>
+<footer>Thông tin và bài làm của bạn chỉ được dùng để xếp lớp và theo dõi việc học của bạn tại Giáo Làng. Dữ liệu trên trang làm bài sẽ tự xoá sau 60 ngày.</footer>
 <script src="config.js"></script>
 <script>
 (function(){
@@ -280,7 +280,7 @@ async function api(body){
   if (body.token){ body.key = DEVKEY; body.device = body.device || DEVICE; }
   S.lastCall = Date.now();
   try { r = await fetch(FN, { method:'POST', headers:{ 'Content-Type':'application/json', 'apikey': C.key || '' }, body: JSON.stringify(body) }); }
-  catch (e){ const err = new Error('Mất kết nối mạng. Bạn kiểm tra lại Wi-Fi hoặc 4G rồi thử lại.'); err.net = true; throw err; }
+  catch (e){ const err = new Error('Máy của bạn đang mất kết nối mạng. Bạn kiểm tra lại Wi-Fi hoặc 4G rồi thử lại nhé.'); err.net = true; throw err; }
   let j = null; try { j = await r.json(); } catch (e) {}
   if (!r.ok){
     const err = new Error((j && j.message) || 'Máy chủ đang hơi bận. Bạn thử lại sau vài giây nhé.'); err.status = r.status;
@@ -301,9 +301,9 @@ function showBlocked(){
   document.body.classList.remove('testing', 'split-mode');
   $('#modal').innerHTML = '';
   $('#main').innerHTML = `<div class="narrow stack"><div class="card stack"><h1 style="font-size:21px">Bài kiểm tra đang được làm trên một máy khác</h1>
-    <p style="margin:0">Mỗi lúc chỉ một máy được làm bài. Link này đang mở ở máy khác nên máy này tạm chưa vào được.</p>
-    <p style="margin:0">Nếu bạn vừa đổi máy (điện thoại hết pin, lỡ tắt trình duyệt, hay mở link bằng ứng dụng khác), hãy đóng trang làm bài ở máy hoặc ứng dụng kia, đợi khoảng 2 phút rồi bấm "Thử lại". Bài đã làm vẫn còn nguyên, chỉ có đồng hồ vẫn chạy trong lúc chờ.</p>
-    <p style="margin:0">Nếu bạn không mở bài ở đâu khác, nhắn ngay cho trung tâm qua Zalo để được hỗ trợ.</p>
+    <p style="margin:0">Để bài làm không bị lẫn, mỗi lúc chỉ một máy được làm bài. Link của bạn đang được mở ở một máy khác, nên máy này tạm thời chưa vào được.</p>
+    <p style="margin:0">Nếu bạn vừa đổi máy (điện thoại hết pin, lỡ tắt trình duyệt, hay mở link bằng ứng dụng khác), bạn hãy đóng trang làm bài ở máy hoặc ứng dụng kia, đợi khoảng 2 phút rồi bấm "Thử lại". Phần bạn đã làm vẫn còn nguyên, chỉ có đồng hồ là vẫn chạy trong lúc chờ.</p>
+    <p style="margin:0">Nếu bạn không mở bài ở đâu khác, hãy nhắn ngay cho trung tâm qua Zalo để được hỗ trợ nhé.</p>
     <div class="row" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><button class="btn pri" type="button" data-a="busy-retry">Thử lại</button>${zaloLink()}</div></div></div>`;
 }
 const now = () => Date.now() + S.offset;
@@ -331,7 +331,7 @@ function blocks(bs){
       case 'li': return `<div class="li"><b>${b.k ? esc(b.k) : '•'}</b><span>${segs(b.c)}</span></div>`;
       case 'box': return `<div class="box">${blocks(b.b)}</div>`;
       case 'table': return `<div class="tw"><table>${b.rows.map(r => `<tr>${r.map(c => `<td colspan="${c.span || 1}"${c.rs > 1 ? ` rowspan="${c.rs}"` : ''}>${blocks(c.b)}</td>`).join('')}</tr>`).join('')}</table></div>`;
-      case 'img': return b.src ? `<img class="fig" src="${esc(b.src)}" alt="Hình trong đề" loading="lazy" data-zoom>` : `<div class="alert">Hình trong đề chưa tải được. Bạn tải lại trang thử nhé.</div>`;
+      case 'img': return b.src ? `<img class="fig" src="${esc(b.src)}" alt="Hình trong đề" loading="lazy" data-zoom>` : `<div class="alert">Hình trong đề chưa tải được. Bạn thử tải lại trang nhé.</div>`;
       case 'q': { const c = control(b.q); return `<div class="ql${c.startsWith('<div class="radios"') ? ' rad' : ''}"><span class="qn">${b.q}</span><div class="qt">${segs(b.c)}</div><div class="qa">${c}</div></div>`; }
       case 'mc': {
         if (Array.isArray(b.qs) && b.qs.length > 1){
@@ -509,41 +509,42 @@ function viewWelcome(){
   const d = S.v.durations || {};
   const short = S.v.kind !== 'full';
   return `<div class="narrow stack">
-    <div><h1 style="font-size:27px;margin-bottom:6px">Chào mừng bạn đến với bài kiểm tra đầu vào</h1>
-    <p class="muted" style="margin:0">Bài gồm 3 phần, làm lần lượt theo thứ tự bên dưới. Trước mỗi phần có một màn giới thiệu ngắn, bạn bấm "Bắt đầu làm bài" khi đã sẵn sàng.</p></div>
-    <div class="card guide"><b>Lần đầu làm bài online? Xem video hướng dẫn 3 phút</b>
-      <div class="small muted">Video dùng đề mẫu, không phải đề bạn sắp làm. Xem video không bị tính giờ.</div>
+    <div><h1 style="font-size:27px;margin-bottom:6px">Chào mừng bạn đến với <span style="white-space:nowrap">bài kiểm tra đầu vào</span> của Giáo Làng!</h1>
+    <p class="muted" style="margin:0">Bài kiểm tra này giúp trung tâm biết trình độ hiện tại của bạn để xếp lớp cho phù hợp, nên bạn cứ thoải mái làm theo khả năng của mình nhé. Bài gồm 3 phần, bạn làm lần lượt theo thứ tự bên dưới. Trước mỗi phần sẽ có một màn giới thiệu ngắn, và khi đã sẵn sàng thì bạn bấm "Bắt đầu làm bài".</p></div>
+    <div class="card guide"><b>Lần đầu làm bài trực tuyến? Bạn xem video hướng dẫn ngắn (khoảng 4 phút) này trước nhé.</b>
+      <div class="small muted">Video dùng đề mẫu, không phải đề bạn sắp làm. Đồng hồ chưa chạy, nên bạn cứ xem thong thả.</div>
       <video controls preload="none" playsinline poster="huong-dan.jpg" aria-label="Video hướng dẫn làm bài"><source src="huong-dan.mp4" type="video/mp4"><source src="huong-dan.webm" type="video/webm">Trình duyệt không phát được video.</video></div>
     <div class="grid3">
-      <div class="card"><div class="kicker">Phần 1</div><b style="font-size:17px">Listening</b><div class="small muted">${S.v.counts.L} câu · nghe hết bài + 3 phút soát lại</div></div>
+      <div class="card"><div class="kicker">Phần 1</div><b style="font-size:17px">Listening</b><div class="small muted">${S.v.counts.L} câu · nghe hết bài, thêm 3 phút soát lại</div></div>
       <div class="card"><div class="kicker">Phần 2</div><b style="font-size:17px">Reading</b><div class="small muted">${S.v.counts.R} câu · ${Math.round(d.R / 60)} phút</div></div>
       <div class="card"><div class="kicker">Phần 3</div><b style="font-size:17px">Writing</b><div class="small muted">${S.v.counts.W > 1 ? 'Task 1 + Task 2' : '1 đề Task 2'} · ${Math.round(d.W / 60)} phút</div></div>
     </div>
     <div class="card"><b>Cách làm bài trên trang này</b><ul class="notes">
-      <li>Mỗi phần chia thành các tab <b>Part 1, Part 2…</b> (Reading là <b>Passage 1, Passage 2…</b>) ở thanh dưới cùng. Bấm vào tab để chuyển qua lại.</li>
-      <li>Câu đã trả lời thì số câu chuyển <b style="color:var(--green)">màu xanh lá</b>. Bấm vào số câu để nhảy tới câu đó.</li>
-      <li>Reading: bài đọc và câu hỏi nằm ở hai khung riêng, cuộn riêng từng khung. Trên điện thoại, bấm "Bài đọc" hoặc "Câu hỏi" ở phía trên để chuyển.</li>
-      <li>Muốn đánh dấu chữ trong đề: bôi đen chữ (kéo chuột qua chữ; trên điện thoại thì giữ ngón tay lên chữ) rồi bấm "Tô màu". Muốn bỏ thì bấm vào chỗ đã tô, chọn "Bỏ tô".</li>
-      <li>Writing: đề bài một bên, ô viết bài một bên.${short ? '' : ' Bấm tab <b>Task 1</b>, <b>Task 2</b> ở thanh dưới cùng để chuyển giữa hai bài.'}</li>
+      <li>Mỗi phần được chia thành các tab <b>Part 1, Part 2…</b> (phần Reading là <b>Passage 1, Passage 2…</b>) ở thanh dưới cùng. Bạn bấm vào tab để chuyển qua lại.</li>
+      <li>Câu nào bạn đã trả lời thì số câu sẽ chuyển sang <b style="color:var(--green)">màu xanh lá</b>. Bạn bấm vào số câu để nhảy nhanh tới câu đó.</li>
+      <li>Ở phần Reading, bài đọc và câu hỏi nằm ở hai khung riêng, và mỗi khung cuộn riêng. Trên điện thoại, bạn bấm "Bài đọc" hoặc "Câu hỏi" ở phía trên để chuyển qua lại.</li>
+      <li>Khi muốn đánh dấu chữ trong đề, bạn bôi đen chữ (kéo chuột qua chữ; trên điện thoại thì giữ ngón tay lên chữ) rồi bấm "Tô màu". Muốn bỏ, bạn bấm vào chỗ đã tô rồi chọn "Bỏ tô".</li>
+      <li>Ở phần Writing, đề bài nằm một bên và ô viết bài nằm bên còn lại.${short ? '' : ' Bạn bấm tab <b>Task 1</b>, <b>Task 2</b> ở thanh dưới cùng để chuyển giữa hai bài.'}</li>
     </ul>
     <div class="demo" aria-hidden="true"><span class="tab on"><b>Part 1</b><span class="tc">2/3</span></span><span class="qb ans">1</span><span class="qb ans">2</span><span class="qb">3</span><span class="small muted">Ví dụ: câu 1 và 2 đã làm, câu 3 chưa làm.</span></div>
     <p class="small" style="margin:10px 0 0">Ví dụ chữ đã tô: The <mark class="hl">first public library</mark> opened in 1850.</p></div>
     <div class="card"><b>Trước khi bắt đầu</b><ul class="notes">
-      <li>Bài làm được tự lưu liên tục. Lỡ mất mạng hay tắt trình duyệt cũng không sao, bạn mở lại link là làm tiếp được.</li>
-      <li>Link chỉ dùng cho một lượt làm bài, và đồng hồ vẫn chạy khi bạn rời trang.</li>
-      <li>Hệ thống có ghi lại số lần bạn rời khỏi trang làm bài.</li>
-      <li>Làm trên máy tính hay điện thoại đều được. Phần Listening nên đeo tai nghe.</li>
-      <li>Grammarly và các tiện ích sửa lỗi chính tả không hoạt động trong ô làm bài.</li>
-      <li>Thông tin và bài làm của bạn chỉ dùng để xếp lớp và theo dõi việc học tại Giáo Làng. Dữ liệu trên trang làm bài tự xoá sau 60 ngày.</li>
+      <li>Bài làm của bạn được tự lưu liên tục. Nếu lỡ mất mạng hay tắt trình duyệt, bạn cũng đừng lo, chỉ cần mở lại link là làm tiếp được.</li>
+      <li>Mỗi link chỉ dùng cho một lượt làm bài. Đồng hồ vẫn chạy cả khi bạn rời trang, nên bạn cố gắng làm liền một mạch nhé.</li>
+      <li>Hệ thống có ghi lại số lần bạn rời khỏi trang làm bài, vì vậy bạn nên hạn chế chuyển sang ứng dụng hay trang khác trong lúc làm nhé.</li>
+      <li>Bạn làm trên máy tính hay điện thoại đều được. Với phần Listening, bạn nên đeo tai nghe để nghe rõ hơn.</li>
+      <li>Grammarly và các tiện ích sửa lỗi chính tả sẽ không hoạt động trong ô làm bài, vì trung tâm cần biết đúng trình độ của bạn.</li>${ZALO ? `
+      <li>Nếu gặp khó khăn ở bất cứ bước nào, bạn bấm nút "Zalo trợ giúp" ở đầu trang để nhắn trung tâm nhé.</li>` : ''}
     </ul></div>
-    <div><button type="button" class="btn pri lg" data-a="enter">Vào phần Listening</button></div>
+    <div class="stack" style="gap:8px"><p style="margin:0">Khi đã sẵn sàng, bạn bấm nút bên dưới để vào phần đầu tiên. Chúc bạn làm bài thật tốt!</p>
+    <div><button type="button" class="btn pri lg" data-a="enter">Vào phần Listening</button></div></div>
   </div>`;
 }
 function audioTop(){
   const v = S.v, dur = v.durations.audio;
-  if (!v.started) return `<div class="card audio"><b>File nghe</b><div class="small muted">File nghe sẽ phát một lần ngay khi bạn bấm "Bắt đầu làm bài".</div></div>`;
-  if (S.phase === 'review') return `<div class="card audio"><b>Đã hết file nghe</b><div class="prog"><i style="width:100%"></i></div><div class="review">Bạn còn <span id="rv">${fmt((v.deadline - now()) / 1000)}</span> để soát lại đáp án. Hết giờ, bài sẽ tự nộp.</div></div>`;
-  return `<div class="card audio"><div class="row" style="justify-content:space-between"><b>Đang phát file nghe</b><span class="small muted" id="apos">${fmt(curPos())} / ${fmt(dur)}</span></div><div class="prog"><i id="abar" style="width:${Math.min(100, curPos() / dur * 100)}%"></i></div><div class="small muted">File nghe chạy liền một mạch, không tua hay dừng được.</div></div>`;
+  if (!v.started) return `<div class="card audio"><b>File nghe</b><div class="small muted">File nghe sẽ tự phát ngay khi bạn bấm "Bắt đầu làm bài" và chỉ phát một lần.</div></div>`;
+  if (S.phase === 'review') return `<div class="card audio"><b>Đã hết file nghe</b><div class="prog"><i style="width:100%"></i></div><div class="review">Bạn còn <span id="rv">${fmt((v.deadline - now()) / 1000)}</span> để xem lại đáp án. Khi hết giờ, phần này sẽ được tự động nộp.</div></div>`;
+  return `<div class="card audio"><div class="row" style="justify-content:space-between"><b>Đang phát file nghe</b><span class="small muted" id="apos">${fmt(curPos())} / ${fmt(dur)}</span></div><div class="prog"><i id="abar" style="width:${Math.min(100, curPos() / dur * 100)}%"></i></div><div class="small muted">File nghe phát liền một mạch và không tua hay dừng được, nên bạn tập trung nghe nhé.</div></div>`;
 }
 // cuối mỗi tab: nút sang tab sau; tab cuối: nút nộp
 function endBtn(i){
@@ -566,9 +567,9 @@ function viewSection(){
     const k = taskKey(t, i), text = S.writing[k] || '', n = words(text);
     return `<div class="part split wsplit" data-p="${i}" ${hid(i)}>`
       + `<section class="card paper pane pane-p" data-hl="W${i}" aria-label="Đề bài ${esc(tabName(t, i))}"><h2>${esc(t.title)}</h2>${blocks(t.blocks)}</section>`
-      + `<section class="card pane editor" aria-label="Bài viết ${esc(tabName(t, i))}"><div class="row" style="justify-content:space-between"><label for="w${k}" style="font-weight:600">Bài viết của bạn – ${esc(tabName(t, i))}</label><span class="small muted">Bài tự lưu trong lúc bạn gõ.</span></div>`
+      + `<section class="card pane editor" aria-label="Bài viết ${esc(tabName(t, i))}"><div class="row" style="justify-content:space-between"><label for="w${k}" style="font-weight:600">Bài viết của bạn – ${esc(tabName(t, i))}</label><span class="small muted">Bài của bạn được tự lưu trong lúc bạn gõ.</span></div>`
       + `<textarea class="essay" id="w${k}" data-w="${k}" data-min="${t.min_words}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${NOASSIST} placeholder="Gõ bài viết của bạn vào đây…">${esc(text)}</textarea>`
-      + `<div class="alert" id="pw${k}" hidden>Ô làm bài không nhận chữ dán vào. Bạn tự gõ bài nhé.</div>`
+      + `<div class="alert" id="pw${k}" hidden>Ô làm bài không nhận chữ dán từ nơi khác vào. Bạn tự gõ bài viết của mình nhé.</div>`
       + `<div class="row" style="justify-content:space-between"><span class="count ${n === 0 ? '' : n < t.min_words ? 'low' : 'okc'}" id="c${k}">Số chữ: ${n} (ít nhất ${t.min_words})</span>${endBtn(i)}</div></section></div>`;
   }).join('');
 }
@@ -663,11 +664,11 @@ window.addEventListener('resize', hideHl);
 const assistHold = () => !!(S.v && S.v.sec === 'W' && S.ext.block.length && !(S.v.started && S.ext.noPause));
 function viewAssist(){
   const names = S.ext.block.join(', '), started = S.v && S.v.started;
-  return `<div class="scrim"><div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="mt"><div><div class="kicker" style="color:var(--accent-ink)">Phần 3 / 3 · Writing</div><h2 id="mt">Cần tắt tiện ích sửa ngữ pháp</h2></div>
-    <ul class="notes" style="margin:0"><li>Trình duyệt đang bật: <b>${esc(names)}</b>.</li>
-      <li>Tiện ích này tự sửa câu chữ nên không được dùng khi làm Writing, và trang chưa tắt được nó.</li>
-      <li>Cách tắt: bấm biểu tượng mảnh ghép (Tiện ích) cạnh thanh địa chỉ, tắt tiện ích trên. Hoặc mở link bằng một trình duyệt khác không cài tiện ích.</li>
-      <li>${started ? 'Đề bài đang được ẩn và đồng hồ Writing tạm dừng cho tới khi bạn tắt xong (tạm dừng tối đa 30 phút).' : 'Đồng hồ Writing chưa chạy. Tắt xong là bạn bắt đầu làm được.'}</li></ul>
+  return `<div class="scrim"><div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="mt"><div><div class="kicker" style="color:var(--accent-ink)">Phần 3 / 3 · Writing</div><h2 id="mt">Bạn cần tắt tiện ích sửa ngữ pháp trước khi làm Writing</h2></div>
+    <ul class="notes" style="margin:0"><li>Trình duyệt của bạn đang bật: <b>${esc(names)}</b>.</li>
+      <li>Tiện ích này tự sửa câu chữ nên bạn không được dùng khi làm Writing, mà trang làm bài lại chưa tự tắt được nó.</li>
+      <li>Để tắt, bạn bấm biểu tượng mảnh ghép (Tiện ích) cạnh thanh địa chỉ rồi tắt tiện ích trên. Bạn cũng có thể mở link bằng một trình duyệt khác không cài tiện ích này.</li>
+      <li>${started ? 'Đề bài đang được ẩn và đồng hồ Writing tạm dừng cho tới khi bạn tắt xong (tạm dừng tối đa 30 phút), nên bạn không bị mất thời gian làm bài.' : 'Đồng hồ Writing chưa chạy. Tắt xong là bạn có thể bắt đầu làm bài ngay.'}</li></ul>
     <div class="row end"><button type="button" class="btn" data-a="assist-check">Kiểm tra lại</button><button type="button" class="btn pri" data-a="assist-reload">Tắt xong, tải lại trang</button></div></div></div>`;
 }
 function viewModal(){
@@ -698,41 +699,41 @@ function viewResult(){
     : `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between"><b style="font-size:16px">${SK[k]}</b><span class="muted small">${x.correct == null ? '' : `${x.correct}/${x.total} câu đúng`}</span></div><div class="band">${x.band == null ? '–' : Number(x.band).toFixed(1)}</div>${x.comment ? `<p class="small" style="margin:0;color:var(--text2)">${esc(x.comment)}</p>` : ''}</div>`;
   // bài bỏ dở: máy chủ tự nộp khi quá 24 giờ không làm tiếp (Quản lý chốt 19/10)
   const head = skip.length
-    ? `<div class="card stack"><h1 style="font-size:21px">Bài kiểm tra đã được tự nộp</h1><p style="margin:0">Bài đã được tự nộp vì quá 24 giờ bạn không làm tiếp. Phần chưa làm (${skip.map(k => SK[k]).join(', ')}) được tính là để trống.</p><p style="margin:0">Nếu muốn làm lại, bạn nhắn trung tâm qua Zalo nhé.</p></div>`
-    : `<div class="row" style="gap:14px;flex-wrap:nowrap"><span class="pill p-ok" style="width:46px;height:46px;justify-content:center;font-size:22px;padding:0">✓</span><div><h1 style="font-size:24px">Bạn đã nộp bài thành công</h1><div class="muted">Cảm ơn bạn đã dành thời gian làm bài.</div></div></div>`;
+    ? `<div class="card stack"><h1 style="font-size:21px">Bài kiểm tra của bạn đã được tự động nộp</h1><p style="margin:0">Vì đã quá 24 giờ kể từ lần cuối bạn làm bài, hệ thống đã tự động nộp bài giúp bạn. Những phần bạn chưa làm (${skip.map(k => SK[k]).join(', ')}) được tính là để trống.</p><p style="margin:0">Nếu muốn làm lại, bạn cứ nhắn trung tâm qua Zalo nhé.</p></div>`
+    : `<div class="row" style="gap:14px;flex-wrap:nowrap"><span class="pill p-ok" style="width:46px;height:46px;justify-content:center;font-size:22px;padding:0">✓</span><div><h1 style="font-size:24px">Bạn đã nộp bài thành công</h1><div class="muted">Cảm ơn bạn đã dành thời gian làm bài kiểm tra!</div></div></div>`;
   return `<div class="narrow stack">${head}
     <div class="res">${card('L', r.L || {})}${card('R', r.R || {})}</div>
-    <div class="card"><b>Writing</b><p class="small" style="margin:4px 0 0;color:var(--text2)">${skip.includes('W') ? 'Bạn chưa làm phần này.' : 'Giáo viên sẽ chấm bài viết của bạn, sau đó trung tâm liên hệ để báo kết quả đầy đủ và tư vấn lớp phù hợp.'}</p></div></div>`;
+    <div class="card"><b>Writing</b><p class="small" style="margin:4px 0 0;color:var(--text2)">${skip.includes('W') ? 'Bạn chưa làm phần này.' : 'Giáo viên sẽ chấm bài viết của bạn. Sau đó, trung tâm sẽ liên hệ với bạn để báo kết quả đầy đủ và tư vấn lớp học phù hợp.'}</p></div></div>`;
 }
 function showError(msg, withCode){
   $('#bar').hidden = true; $('#nav').hidden = true; S.key = null; hideHl();
   document.body.classList.remove('testing', 'split-mode');
   $('#main').innerHTML = `<div class="narrow stack"><div class="card stack"><h1 style="font-size:21px">Chưa mở được bài kiểm tra</h1><p style="margin:0">${esc(msg)}</p>${withCode ? codeForm() : ZALO ? `<div>${zaloLink()}</div>` : ''}</div></div>`;
 }
-const codeForm = () => `<form id="codeform" class="stack" style="gap:10px"><label class="field" for="code">Mã 8 ký tự trung tâm gửi bạn<input id="code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="VD: ABCD2345"></label><div class="alert" id="codeerr" hidden></div><div><button class="btn pri" type="submit">Vào bài kiểm tra</button></div>${ZALO ? `<div class="helpline"><span>Chưa có mã hoặc nhập mã không được, bạn nhắn trung tâm để được hỗ trợ:</span>${zaloLink()}</div>` : ''}</form>`;
+const codeForm = () => `<form id="codeform" class="stack" style="gap:10px"><label class="field" for="code">Mã 8 ký tự mà trung tâm đã gửi cho bạn<input id="code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="VD: ABCD2345"></label><div class="alert" id="codeerr" hidden></div><div><button class="btn pri" type="submit">Vào bài kiểm tra</button></div>${ZALO ? `<div class="helpline"><span>Nếu chưa có mã hoặc nhập mã không được, bạn nhắn trung tâm để được hỗ trợ nhé:</span>${zaloLink()}</div>` : ''}</form>`;
 
 /* ---------------------------------------------------------------- popup giới thiệu */
 function introFor(sk){
   const v = S.v, d = v.durations;
   if (sk === 'L') return { kicker:'Phần 1 / 3', title:'Listening', lines:[
-    `${v.counts.L} câu${qTypes().length ? ', gồm các dạng: ' + qTypes().join(', ') : ''}.`,
-    'File nghe phát một lần, không tua hay dừng được.',
-    'Nghe xong, bạn có thêm 3 phút để soát lại đáp án.',
-    'Chuyển phần bằng tab Part 1, Part 2… ở thanh dưới cùng. Câu đã trả lời có số màu xanh lá.',
-    'Đeo tai nghe và chỉnh âm lượng trước khi bấm "Bắt đầu làm bài" nhé.'] };
+    `Phần này có ${v.counts.L} câu${qTypes().length ? ', gồm các dạng: ' + qTypes().join(', ') : ''}.`,
+    'File nghe chỉ phát một lần và không tua hay dừng được, nên bạn chuẩn bị sẵn sàng rồi hãy bắt đầu nhé.',
+    'Khi file nghe kết thúc, bạn có thêm 3 phút để xem lại đáp án.',
+    'Bạn chuyển giữa các phần bằng tab Part 1, Part 2… ở thanh dưới cùng. Câu nào bạn đã trả lời thì số câu sẽ chuyển màu xanh lá.',
+    'Bạn nhớ đeo tai nghe và chỉnh âm lượng trước khi bấm "Bắt đầu làm bài" nhé.'] };
   if (sk === 'R') return { kicker:'Phần 2 / 3', title:'Reading', lines:[
-    `${v.counts.R} câu${qTypes().length ? ', gồm các dạng: ' + qTypes().join(', ') : ''}.`,
-    `Bạn có ${Math.round(d.R / 60)} phút, tính từ lúc bấm "Bắt đầu làm bài".`,
-    'Bài đọc và câu hỏi cuộn riêng từng khung. Đổi bài đọc bằng tab Passage ở thanh dưới cùng.',
-    'Bôi đen chữ rồi bấm "Tô màu" để đánh dấu; bấm vào chỗ đã tô, chọn "Bỏ tô" để xoá.',
-    'Hết giờ, bài sẽ tự nộp.'] };
+    `Phần này có ${v.counts.R} câu${qTypes().length ? ', gồm các dạng: ' + qTypes().join(', ') : ''}.`,
+    `Bạn có ${Math.round(d.R / 60)} phút để làm phần này, tính từ lúc bấm "Bắt đầu làm bài".`,
+    'Bài đọc và câu hỏi nằm ở hai khung riêng, mỗi khung cuộn riêng. Bạn đổi bài đọc bằng tab Passage ở thanh dưới cùng.',
+    'Khi muốn đánh dấu chữ, bạn bôi đen chữ rồi bấm "Tô màu". Muốn xoá, bạn bấm vào chỗ đã tô rồi chọn "Bỏ tô".',
+    'Khi hết giờ, phần này sẽ được tự động nộp.'] };
   const ts = ((v.content || {}).tasks || []);
   return { kicker:'Phần 3 / 3', title:'Writing', lines:[
-    ts.map(t => `${t.title}: ít nhất ${t.min_words} chữ.`).join(' '),
-    `Bạn có ${Math.round(d.W / 60)} phút, tính từ lúc bấm "Bắt đầu làm bài".`,
-    ...(ts.length > 1 ? ['Chuyển giữa hai bài bằng tab Task 1, Task 2 ở thanh dưới cùng.'] : []),
-    'Ô làm bài không nhận chữ dán vào, Grammarly và các tiện ích sửa lỗi cũng không chạy trong ô này. Bạn tự gõ bài nhé.',
-    'Hết giờ, bài sẽ tự nộp.'] };
+    ts.map(t => `${t.title} cần ít nhất ${t.min_words} chữ.`).join(' '),
+    `Bạn có ${Math.round(d.W / 60)} phút để làm phần này, tính từ lúc bấm "Bắt đầu làm bài".`,
+    ...(ts.length > 1 ? ['Bạn chuyển giữa hai bài bằng tab Task 1, Task 2 ở thanh dưới cùng.'] : []),
+    'Bạn tự gõ bài viết của mình nhé: ô làm bài không nhận chữ dán từ nơi khác vào, và Grammarly hay các tiện ích sửa lỗi cũng không chạy trong ô này.',
+    'Khi hết giờ, bài sẽ được tự động nộp.'] };
 }
 
 /* ---------------------------------------------------------------- file nghe */
@@ -747,7 +748,7 @@ async function loadAudio(){
     for (;;){ const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; if (total){ const p = Math.min(99, Math.floor(got / total * 100)); if (p !== S.audioPct){ S.audioPct = p; refreshModal(); } } }
     S.audioUrl = URL.createObjectURL(new Blob(parts, { type: r.headers.get('content-type') || 'audio/mpeg' }));
     aud.src = S.audioUrl; aud.load(); S.audioPct = 100;
-  } catch (e){ S.audioErr = 'File nghe chưa tải được. Bạn kiểm tra mạng rồi bấm "Tải lại file nghe".'; }
+  } catch (e){ S.audioErr = 'File nghe chưa tải được. Bạn kiểm tra lại mạng rồi bấm "Tải lại file nghe" nhé.'; }
   S.audioLoading = false;
   refreshModal();
 }
@@ -770,7 +771,7 @@ function playFromAnchor(){
   const go = () => {
     try { aud.currentTime = expectedPos(); } catch (e) {}
     aud.muted = false;
-    aud.play().catch(() => { if (S.phase !== 'play') return; S.modal = { type:'msg', title:'Bấm để nghe tiếp', body:'Trình duyệt cần bạn bấm thêm một lần để phát âm thanh.', ok:'Nghe tiếp', act:'play' }; render(); });
+    aud.play().catch(() => { if (S.phase !== 'play') return; S.modal = { type:'msg', title:'Bấm để nghe tiếp', body:'Trình duyệt cần bạn bấm thêm một lần nữa để phát âm thanh. Bạn bấm "Nghe tiếp" nhé.', ok:'Nghe tiếp', act:'play' }; render(); });
   };
   if (aud.readyState >= 1) go(); else aud.addEventListener('loadedmetadata', go, { once:true });
   render();
@@ -949,8 +950,8 @@ const ACT = {
   submit: () => {
     const sk = S.v.sec;
     const miss = sk === 'W' ? [] : Object.keys(S.v.content.questions || {}).filter(n => !answered(n)).sort((a, b) => a - b), blank = miss.length;
-    S.modal = { type:'confirm', title: sk === 'W' ? 'Nộp bài?' : `Nộp phần ${SK[sk]}?`,
-      body: (blank ? `Bạn còn ${blank} câu chưa trả lời (câu ${miss.slice(0, 12).join(', ')}${blank > 12 ? ', …' : ''}). ` : '') + 'Nộp rồi thì không quay lại sửa phần này được nữa.', ok: sk === 'W' ? 'Nộp bài' : 'Nộp phần này' };
+    S.modal = { type:'confirm', title: sk === 'W' ? 'Bạn muốn nộp bài?' : `Bạn muốn nộp phần ${SK[sk]}?`,
+      body: (blank ? `Bạn còn ${blank} câu chưa trả lời (câu ${miss.slice(0, 12).join(', ')}${blank > 12 ? ', …' : ''}). ` : '') + 'Sau khi nộp, bạn sẽ không quay lại sửa phần này được nữa.', ok: sk === 'W' ? 'Nộp bài' : 'Nộp phần này' };
     render();
   },
   cancel: () => { S.modal = null; render(); },
@@ -978,7 +979,7 @@ async function submitNow(){
     window.scrollTo(0, 0);
   } catch (e){
     S.typing = typing.concat(S.typing); S.leaves = leaves.concat(S.leaves);
-    S.modal = { type:'msg', title:'Chưa nộp được', body: e.message + ' Bài làm vẫn còn nguyên, bạn bấm "Thử lại" để nộp.', ok:'Thử lại', act:'confirm' };
+    S.modal = { type:'msg', title:'Chưa nộp được', body: e.message + ' Bài làm của bạn vẫn còn nguyên, bạn bấm "Thử lại" để nộp nhé.', ok:'Thử lại', act:'confirm' };
   }
   finally { S.submitting = false; S.busy = false; render(); }
 }
@@ -1059,9 +1060,9 @@ function afterOpen(v){
     if (pos >= v.durations.audio - 0.5 && !(v.resume && v.resume.rewind)){ S.phase = 'review'; return; }
     const r = v.resume;
     S.modal = { type:'intro', kicker:'Phần 1 / 3', title:'Nghe tiếp phần Listening', button:'Nghe tiếp',
-      lines: r && r.rewind ? [`Bài làm đã được lưu. File nghe sẽ phát tiếp từ mốc ${fmt(r.pos)} (lùi lại 15 giây so với lúc bạn thoát).`, `Bạn được lùi 15 giây tối đa 2 lần. Đây là lần thứ ${r.drops}.`]
-           : r ? ['Bài làm vẫn được lưu. Vì bạn đã thoát quá 2 lần, file nghe phát tiếp theo đúng thời gian thật, đoạn đã lỡ không nghe lại được.']
-           : ['Bài làm đã được lưu. File nghe phát tiếp theo đúng thời gian thật.'] };
+      lines: r && r.rewind ? [`Bài làm của bạn đã được lưu lại. File nghe sẽ phát tiếp từ mốc ${fmt(r.pos)}, lùi lại 15 giây so với lúc bạn thoát để không bị lỡ đoạn nào.`, `Bạn được lùi lại 15 giây như vậy tối đa 2 lần, và đây là lần thứ ${r.drops}.`]
+           : r ? ['Bài làm của bạn vẫn được lưu. Vì bạn đã thoát quá 2 lần, file nghe sẽ phát tiếp theo đúng thời gian thật, nên đoạn đã lỡ không nghe lại được.']
+           : ['Bài làm của bạn đã được lưu. File nghe sẽ phát tiếp theo đúng thời gian thật.'] };
     loadAudio();
   }
 }
@@ -1072,7 +1073,7 @@ async function start(){
     setView(v, false); afterOpen(v); render();
   } catch (e){ if (e.busy) return; showError(e.message, e.status === 404 && !/^[0-9a-f]{64}$/.test(TOKEN)); if (e.net) setTimeout(start, 4000); }
 }
-if (!TOKEN){ $('#main').innerHTML = `<div class="narrow stack"><div class="card stack"><h1 style="font-size:21px">Vào bài kiểm tra đầu vào</h1><p style="margin:0" class="muted">Bạn mở bài bằng link trung tâm gửi qua Zalo. Nếu link không mở được, nhắn trung tâm để lấy mã 8 ký tự rồi nhập vào ô dưới đây.</p>${codeForm()}</div></div>`; }
+if (!TOKEN){ $('#main').innerHTML = `<div class="narrow stack"><div class="card stack"><h1 style="font-size:21px">Vào bài kiểm tra đầu vào</h1><p style="margin:0" class="muted">Thông thường, bạn mở bài bằng link mà trung tâm đã gửi qua Zalo. Nếu link không mở được, bạn nhắn trung tâm để lấy mã 8 ký tự rồi nhập vào ô dưới đây nhé.</p>${codeForm()}</div></div>`; }
 else if (/^[A-Za-z0-9]{8}$/.test(TOKEN)){ api({ action:'code', code: TOKEN }).then(r => { TOKEN = r.token; history.replaceState(null, '', '?ma=' + encodeURIComponent(TOKEN)); start(); }, e => showError(e.message, true)); }
 else start();
 })();
